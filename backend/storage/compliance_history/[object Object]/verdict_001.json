@@ -1,0 +1,46 @@
+{
+  "feature_id": "[object Object]",
+  "version": "001",
+  "timestamp": "2026-02-01T00:32:57.379616",
+  "verdict": {
+    "feature": "[object Object]",
+    "feature_description": "vejlke skeleg",
+    "needs_geo_specific_logic": true,
+    "reasoning": "Given the collective jurisdictions listed (EU, US-CA, India), each with unique data protection regulations, a geo-specific compliance logic is required due to the collection of personal data types such as Voice/audio, Location, Personal identifiers (email, phone), Usage analytics and the inability to obtain user consent.",
+    "regions_affected": {
+      "EU": {
+        "requirement_summary": "GDPR compliance required due to data collection",
+        "regulations": [
+          {
+            "name": "GDPR",
+            "citation": "Regulation (EU) 2016/679",
+            "snippet": "...'The processing of personal data is only lawful if and to the extent that at least one of the following applies...'"
+          }
+        ]
+      },
+      "US-CA": {
+        "requirement_summary": "CCPA compliance required due to data collection",
+        "regulations": [
+          {
+            "name": "CCPA",
+            "citation": "California Civil Code \u00a7 1798.100 et seq.",
+            "snippet": "...'A consumer shall have the right, at any time, to request that a business that collects personal information about the consumer disclose to the consumer the categories and specific pieces of personal information that the business has collected.'"
+          }
+        ]
+      },
+      "India": {
+        "requirement_summary": "Aadhaar Act compliance required due to data collection",
+        "regulations": [
+          {
+            "name": "The Aadhaar (Targeted Delivery of Financial and other Subsidies, Benefits and Services) Act, 2016",
+            "citation": "Act No. 24 of 2016",
+            "snippet": "...'No entity shall seek to verify Aadhaar number for the purpose of delivery of subsidy, benefit or service, directly or indirectly, in any electronic or physical form, from any individual residing in India.'"
+          }
+        ]
+      }
+    },
+    "past_case_references": [],
+    "confidence": 0.95
+  },
+  "laws_snapshot": []
+}

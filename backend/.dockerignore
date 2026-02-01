@@ -1,0 +1,13 @@
+__pycache__
+venv
+.git
+.env
+*.log
+debug_output.txt
+reproduce_issue.py
+test.py
+test_api.py
+test_auth.py
+test_input.json
+.vscode
+.idea

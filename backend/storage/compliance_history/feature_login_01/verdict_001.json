@@ -1,0 +1,33 @@
+{
+  "feature_id": "feature_login_01",
+  "version": "001",
+  "timestamp": "2026-01-31T05:03:42.838817",
+  "verdict": {
+    "feature": "feature_login_01",
+    "feature_description": "User login flow with password.",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The Jury Agents have reached a consensus that the EU region requires geo-specific compliance logic due to data protection regulations such as GDPR (Report 1).",
+    "regions_affected": {
+      "EU": {
+        "requirement_summary": "Data protection and privacy requirements.",
+        "regulations": [
+          {
+            "name": "General Data Protection Regulation (GDPR)",
+            "citation": "Regulation (EU) 2016/679",
+            "snippet": "Article 5 - Principles relating to processing of personal data, notably the principle of data minimization.",
+            "source_id": "Report_1:Regulation_1"
+          },
+          {
+            "name": "ePrivacy Directive (ePD)",
+            "citation": "Directive 2002/58/EC",
+            "snippet": "Article 5 - Security measures for the protection of electronic communications.",
+            "source_id": "Report_1:Regulation_2"
+          }
+        ]
+      }
+    },
+    "past_case_references": [],
+    "confidence": 0.95
+  },
+  "laws_snapshot": []
+}

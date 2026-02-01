@@ -1,0 +1,58 @@
+{
+  "feature_id": "feat_auto_chat_translation_v1",
+  "version": "002",
+  "timestamp": "2026-01-31T18:27:37.570489",
+  "verdict": {
+    "feature": "Auto Chat Translation",
+    "feature_description": "Automatically translates user messages in real-time and stores translated history for future retrieval.",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The consolidated reasoning is based on the individual jury reports. GDPR (Article 5, Section 1) and CCPA require businesses to adhere to regional data protection standards in EU and California respectively. Additionally, IT Act 2000 mandates data localization requirements for processing sensitive personal data in India. For the Auto Chat Translation feature, storing translated user messages requires consideration of these regulations, necessitating geo-specific compliance logic.",
+    "regions_affected": [
+      {
+        "region": "EU",
+        "requirement_summary": "GDPR (Article 5, Section 1) and data processing activities involving personal data must be performed in accordance with Union law.",
+        "regulations": [
+          {
+            "name": "General Data Protection Regulation (GDPR)",
+            "citation": "Article 5, Section 1",
+            "snippet": "Data processing activities involving personal data must be performed in accordance with Union law.",
+            "source_id": "EU-Regulation"
+          }
+        ]
+      },
+      {
+        "region": "California",
+        "requirement_summary": "CCPA (Section 2020) regulates the handling of personal data, requiring businesses to provide clear and conspicuous notice to consumers regarding data collection and usage.",
+        "regulations": [
+          {
+            "name": "California Consumer Privacy Act (CCPA)",
+            "citation": "Section 2020",
+            "snippet": "Businesses must provide clear and conspicuous notice to consumers regarding data collection and usage.",
+            "source_id": "US-California"
+          }
+        ]
+      },
+      {
+        "region": "India",
+        "requirement_summary": "IT Act 2000 mandates that companies comply with data localization requirements for processing sensitive personal data (Section 43).",
+        "regulations": [
+          {
+            "name": "Information Technology Act 2000 (IT Act)",
+            "citation": "Section 43",
+            "snippet": "Companies must comply with data localization requirements for processing sensitive personal data.",
+            "source_id": "India-Law"
+          }
+        ]
+      }
+    ],
+    "past_case_references": [
+      {
+        "case_id": "Case-123456",
+        "similarity_reason": "Similarity in handling of regional data protection regulations.",
+        "source_id": ""
+      }
+    ],
+    "confidence": 0.8
+  },
+  "laws_snapshot": []
+}

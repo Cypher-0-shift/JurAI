@@ -1,0 +1,22 @@
+{
+    "feature_id": "test-feature-001",
+    "feature": {
+        "name": "AI Recruiter",
+        "description": "An AI system that automatically filters job resumes based on historical hiring data using a machine learning model."
+    },
+    "jurisdictions": [
+        "EU",
+        "US-CA"
+    ],
+    "data_processed": [
+        "Personal Data",
+        "Employment History",
+        "Biometric Data (optional for video interviews)"
+    ],
+    "purpose": "To automate the hiring process, reduce time-to-hire, and improve candidate matching efficiency.",
+    "intended_users": [
+        "HR Managers",
+        "Recruiters"
+    ],
+    "deployment_environment": "Cloud-based SaaS"
+}

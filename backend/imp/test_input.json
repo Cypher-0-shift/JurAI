@@ -1,0 +1,93 @@
+{
+    "feature_id": "feat_auto_chat_translation_v1",
+    "feature_version": "1.0.0",
+    "product": {
+        "name": "Social Chat App",
+        "industry": "Social Media",
+        "business_model": "Ad-based",
+        "company_stage": "Startup"
+    },
+    "feature": {
+        "name": "Auto Chat Translation",
+        "description": "Automatically translates user messages in real-time and stores translated history for future retrieval.",
+        "is_ai_powered": true,
+        "is_user_facing": true,
+        "criticality": "High",
+        "deployment_status": "Development"
+    },
+    "region": [
+        "EU",
+        "California",
+        "India"
+    ],
+    "jurisdictions": [
+        "GDPR",
+        "CCPA",
+        "IT Act 2000 (India)"
+    ],
+    "data_profile": {
+        "data_collected": [
+            "Text messages",
+            "User ID",
+            "Language preference",
+            "Device ID",
+            "IP Address"
+        ],
+        "personal_data": true,
+        "sensitive_data": false,
+        "children_data": true,
+        "biometric_data": false,
+        "financial_data": false,
+        "special_categories": []
+    },
+    "data_flow": {
+        "collection": "Direct User Input",
+        "processing": [
+            "Translation Model (External API)",
+            "Moderation Model (Internal)"
+        ],
+        "storage": {
+            "stored": true,
+            "retention_days": 90,
+            "encryption": "At rest and in transit",
+            "location": "AWS Frankfurt"
+        },
+        "sharing": {
+            "third_party": true,
+            "vendors": [
+                "Google Cloud Translation API",
+                "OpenAI API"
+            ],
+            "cross_border": true,
+            "safeguards": "Standard Contractual Clauses (SCCs)"
+        }
+    },
+    "infrastructure": {
+        "hosting": "AWS",
+        "data_location": [
+            "Germany",
+            "Ireland"
+        ],
+        "logs_stored": true,
+        "model_provider": [
+            "OpenAI",
+            "DeepSeek"
+        ]
+    },
+    "user_context": {
+        "age_group": "13+",
+        "consent_flow": "Explicit Opt-in",
+        "parental_controls": true,
+        "vulnerable_users": "Minors"
+    },
+    "business_risk_profile": {
+        "risk_tolerance": "Low",
+        "compliance_priority": "High",
+        "penalty_sensitivity": "Critical"
+    },
+    "compliance_mode": {
+        "strictness": "High",
+        "require_citations": true,
+        "require_human_review_above_risk": 60
+    }
+}

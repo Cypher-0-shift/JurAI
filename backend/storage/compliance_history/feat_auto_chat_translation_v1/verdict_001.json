@@ -1,0 +1,49 @@
+{
+  "feature_id": "feat_auto_chat_translation_v1",
+  "version": "001",
+  "timestamp": "2026-01-30T21:23:20.610686",
+  "verdict": {
+    "feature": "Auto Chat Translation",
+    "feature_description": "Automatically translates user messages in real-time and stores translated history for future retrieval.",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The feature collects personal data (text messages, User ID, Language preference, Device ID, IP Address), processes this data using AI models, stores it for 90 days in AWS Frankfurt, and shares it with third parties. This activity is subject to various regulations across different jurisdictions. GDPR requires explicit consent from users and imposes strict data protection rules. CCPA also demands disclosure of personal data collection and sale practices to California residents. IT Act 2000 (India) regulates the handling and protection of sensitive personal data, including the obligation to obtain user consent for sharing data with third parties.",
+    "regions_affected": {
+      "EU": {
+        "requirement_summary": "Compliance with GDPR is required, including obtaining explicit consent from users, implementing strict data protection rules, and providing users with access to their personal data upon request.",
+        "regulations": [
+          {
+            "name": "GDPR",
+            "citation": "Regulation (EU) 2016/679",
+            "snippet": "Article 6 \u2013 Lawfulness of processing, Article 12 \u2013 Rights of the data subject, Article 25 \u2013 Data protection by design and by default, Article 34 \u2013 Communication of a personal data breach to the data subject",
+            "source_id": "jury_agent_1_europe"
+          }
+        ]
+      },
+      "California": {
+        "requirement_summary": "Compliance with CCPA is required, including disclosing personal data collection and sale practices to California residents.",
+        "regulations": [
+          {
+            "name": "CCPA",
+            "citation": "California Civil Code \u00a7 1798.100 et seq.",
+            "snippet": "Section 1798.100 \u2013 Definitions, Section 1798.110 \u2013 Consumer\u2019s right to know about personal information sold or disclosed, Section 1798.130 \u2013 Requirements for businesses that sell personal information",
+            "source_id": "jury_agent_1_california"
+          }
+        ]
+      },
+      "India": {
+        "requirement_summary": "Compliance with IT Act 2000 (India) is required, including obtaining user consent for sharing data with third parties.",
+        "regulations": [
+          {
+            "name": "IT Act 2000",
+            "citation": "Information Technology Act 2000 (as amended)",
+            "snippet": "Section 43A \u2013 Duty of the body corporate to protect sensitive personal data or information, Section 72A \u2013 Penalties for disclosure of information in breach of lawful contract, Section 68B \u2013 Sensitive personal data or information",
+            "source_id": "jury_agent_1_india"
+          }
+        ]
+      }
+    },
+    "past_case_references": [],
+    "confidence": 0.95
+  },
+  "laws_snapshot": []
+}

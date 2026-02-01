@@ -1,0 +1,10 @@
+# Core Python version
+python>=3.10
+
+# No external dependencies required for:
+# - Compliance scoring
+# - Compliance diff engine
+# - Human override layer
+# - Auto-fix generator
+#
+# All logic is deterministic and uses Python standard library only

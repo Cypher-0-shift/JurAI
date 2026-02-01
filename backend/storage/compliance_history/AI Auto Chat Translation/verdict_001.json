@@ -1,0 +1,34 @@
+{
+  "feature_id": "AI Auto Chat Translation",
+  "version": "001",
+  "timestamp": "2026-01-31T23:22:16.422471",
+  "verdict": {
+    "feature": "AI Auto Chat Translation",
+    "feature_description": "This feature automatically translates chat messages into the user's preferred language in real time.",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The risk of mistranslation leading to changes in the meaning of sensitive messages is a significant concern, as it may result in miscommunication or misunderstanding. While there's no explicit regulation regarding AI Auto Chat Translation in India, Section 67 of the Information Technology Act, 2000 could potentially apply due to handling personal data. Furthermore, Article 5 of GDPR should be complied with given the feature involves personal data. The jurisdiction being India may limit the applicability of GDPR.",
+    "regions_affected": [
+      {
+        "region": "India",
+        "requirement_summary": "Potential compliance with Section 67 of the Information Technology Act, 2000 and Article 5 of GDPR",
+        "regulations": [
+          {
+            "name": "Information Technology Act, 2000 \u00a767 (India)",
+            "citation": "Information Technology Act, 2000 \u00a767",
+            "snippet": "The AI Auto Chat Translation feature could potentially fall under the purview of Section 67 of the Information Technology Act, 2000.",
+            "source_id": "naiverag_retrieve"
+          },
+          {
+            "name": "General Data Protection Regulation (GDPR) \u00a75 (EU)",
+            "citation": "General Data Protection Regulation (GDPR) \u00a75 (EU)",
+            "snippet": "Since the feature involves handling personal data, it should comply with Article 5 of GDPR.",
+            "source_id": "user"
+          }
+        ]
+      }
+    ],
+    "past_case_references": [],
+    "confidence": 0.85
+  },
+  "laws_snapshot": []
+}

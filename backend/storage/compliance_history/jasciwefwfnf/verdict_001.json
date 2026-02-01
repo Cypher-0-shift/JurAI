@@ -1,0 +1,28 @@
+{
+  "feature_id": "jasciwefwfnf",
+  "version": "001",
+  "timestamp": "2026-01-31T22:51:38.929186",
+  "verdict": {
+    "feature": "jasciwefwfnf",
+    "feature_description": "aeklnciOFQNLKWF",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The provided feature collects personal data (Voice / audio and Location), has a storage duration of 30-90 days, does not require user consent, allows opt-out, uses AI and affects users. In the US jurisdiction, it falls under the scope of the Children's Online Privacy Protection Act (COPPA). COPPA requires obtaining parental consent before collecting, using, or disclosing personal information from children under 13 years of age. The reasoning is based on Jury Agent Report 1.",
+    "regions_affected": [
+      {
+        "region": "US",
+        "requirement_summary": "Compliance with the Children's Online Privacy Protection Act (COPPA). COPPA requires obtaining parental consent before collecting, using, or disclosing personal information from children under 13 years of age.",
+        "regulations": [
+          {
+            "name": "Children's Online Privacy Protection Act (COPPA)",
+            "citation": "Title 16, Chapter 1, Subchapter 06, Part 325 (16 CFR \u00a7 325)",
+            "snippet": "Parental consent is required for the online collection, use, and disclosure of personal information from children under 13 years of age.",
+            "source_id": "call_08a4719b-d0f1-453e-8341-6712574b5c3d"
+          }
+        ]
+      }
+    ],
+    "past_case_references": [],
+    "confidence": 0.85
+  },
+  "laws_snapshot": []
+}
