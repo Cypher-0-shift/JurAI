@@ -1,6 +1,6 @@
 "use client";
 
-import { Scale, Shield, Gavel } from "lucide-react";
+import { Scale, Shield, Gavel, Home, User, Settings } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -29,15 +29,32 @@ function Navigation() {
             </div>
 
             <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 mr-2 pr-4 border-r border-charcoal/10 dark:border-white/10">
+                {/* Navigation Links */}
+                <Link
+                    href="/"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-teal dark:hover:text-teal hover:bg-teal/5 rounded-sm transition-all"
+                >
+                    <Home className="w-4 h-4" />
+                    <span className="hidden sm:inline">Home</span>
+                </Link>
+                <Link
+                    href="/profile"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-teal dark:hover:text-teal hover:bg-teal/5 rounded-sm transition-all"
+                >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">Profile</span>
+                </Link>
+                <Link
+                    href="/settings"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-teal dark:hover:text-teal hover:bg-teal/5 rounded-sm transition-all"
+                >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline">Settings</span>
+                </Link>
+
+                <div className="flex items-center gap-1">
                     <ThemeToggle />
                 </div>
-                <button className="hidden sm:block text-sm font-medium text-teal dark:text-parchment px-4 py-2 hover:bg-teal/5 rounded-sm transition-colors">
-                    Log In
-                </button>
-                <button className="text-sm font-medium bg-teal text-parchment px-5 py-2 rounded-sm shadow-lg hover:shadow-teal/20 hover:-translate-y-0.5 transition-all active:translate-y-0">
-                    Sign Up
-                </button>
             </div>
         </motion.nav>
     );
@@ -161,7 +178,7 @@ export default function DashboardPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.6, delay: 0.5 }}
-                            className="text-xl text-slate/70 dark:text-slate/40 max-w-2xl mx-auto font-light leading-relaxed"
+                            className="text-xl text-slate-700 dark:text-slate-300 max-w-2xl mx-auto font-light leading-relaxed"
                         >
                             Access our judicial-grade AI system for comprehensive legal compliance assessment
                         </motion.p>
@@ -195,15 +212,6 @@ export default function DashboardPage() {
                                 <div className="relative bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-xl shadow-2xl p-10 md:p-14 cursor-pointer overflow-hidden">
                                     {/* Decorative Elements */}
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal via-gold to-teal" />
-                                    <div className="absolute -top-3 -right-3">
-                                        <motion.div
-                                            animate={{ rotate: [0, 5, -5, 0] }}
-                                            transition={{ duration: 4, repeat: Infinity }}
-                                            className="text-xs font-mono text-teal/60 bg-teal/5 dark:bg-teal/10 px-4 py-2 rounded-full border border-teal/10 tracking-widest"
-                                        >
-                                            AVAILABLE NOW
-                                        </motion.div>
-                                    </div>
 
                                     {/* Floating Particles */}
                                     <motion.div
@@ -239,7 +247,7 @@ export default function DashboardPage() {
                                                 <h2 className="font-serif text-3xl text-teal dark:text-parchment mb-3">
                                                     AI Compliance Assessment
                                                 </h2>
-                                                <p className="text-slate/60 dark:text-slate/40 font-light leading-relaxed">
+                                                <p className="text-slate-700 dark:text-slate-300 font-light leading-relaxed">
                                                     Our flagship feature powered by judicial-grade artificial intelligence to analyze your product against global regulations.
                                                 </p>
                                             </div>
@@ -266,7 +274,7 @@ export default function DashboardPage() {
                                                         initial={{ opacity: 0, x: -20 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ duration: 0.5, delay: 0.6 + (index * 0.1) }}
-                                                        className="flex items-start gap-3 text-slate/70 dark:text-slate/40 font-light"
+                                                        className="flex items-start gap-3 text-slate-700 dark:text-slate-300 font-light"
                                                     >
                                                         <motion.div
                                                             animate={{ scale: [1, 1.2, 1] }}
@@ -286,10 +294,10 @@ export default function DashboardPage() {
                                         <motion.div variants={itemVariants} className="pt-2">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-sm text-slate/50 dark:text-slate/40 font-light">
+                                                    <p className="text-sm text-slate-600 dark:text-slate-400 font-light">
                                                         Click to begin your compliance review
                                                     </p>
-                                                    <p className="text-xs text-teal/60 font-mono uppercase tracking-widest mt-1">
+                                                    <p className="text-xs text-teal/80 font-mono uppercase tracking-widest mt-1">
                                                         Powered by JurAI Judicial Intelligence
                                                     </p>
                                                 </div>
@@ -337,7 +345,7 @@ export default function DashboardPage() {
                                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                                 className="w-4 h-4 border-2 border-teal/30 border-t-teal rounded-full"
                             />
-                            <p className="text-sm text-slate/60 dark:text-slate/40 font-light">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 font-light">
                                 This is our flagship feature. More capabilities coming soon.
                             </p>
                             <motion.div

@@ -144,9 +144,10 @@ export default function QuestionnairePage() {
     const isLastStep = currentStep === QUESTIONS.length;
     const progress = ((currentStep + 1) / (QUESTIONS.length + 1)) * 100;
 
-    const shouldShowQuestion = (question: typeof QUESTIONS[0], currentAnswers = answers) => {
+    // Check if question should be shown based on conditional logic
+    const shouldShowQuestion = (question: typeof QUESTIONS[0]) => {
         if (!question.conditional) return true;
-        const dependentAnswer = currentAnswers[question.conditional.dependsOn];
+        const dependentAnswer = answers[question.conditional.dependsOn];
         return dependentAnswer === question.conditional.value;
     };
 
@@ -159,10 +160,9 @@ export default function QuestionnairePage() {
                 : [...current, option];
             setAnswers({ ...answers, [question.id]: updated });
         } else {
-            const newAnswers = { ...answers, [question.id]: option };
-            setAnswers(newAnswers);
+            setAnswers({ ...answers, [question.id]: option });
             setTimeout(() => {
-                goToNextQuestion(newAnswers);
+                goToNextQuestion();
             }, 300);
         }
     };
@@ -171,9 +171,10 @@ export default function QuestionnairePage() {
         setTextInputs({ ...textInputs, [currentQuestion.id]: value });
     };
 
-    const goToNextQuestion = (currentAnswers = answers) => {
+    const goToNextQuestion = () => {
         let nextStep = currentStep + 1;
-        while (nextStep < QUESTIONS.length && !shouldShowQuestion(QUESTIONS[nextStep], currentAnswers)) {
+        // Skip questions that don't meet conditional requirements
+        while (nextStep < QUESTIONS.length && !shouldShowQuestion(QUESTIONS[nextStep])) {
             nextStep++;
         }
         setCurrentStep(nextStep);
@@ -181,6 +182,7 @@ export default function QuestionnairePage() {
 
     const goToPreviousQuestion = () => {
         let prevStep = currentStep - 1;
+        // Skip questions that don't meet conditional requirements
         while (prevStep >= 0 && !shouldShowQuestion(QUESTIONS[prevStep])) {
             prevStep--;
         }
@@ -190,12 +192,10 @@ export default function QuestionnairePage() {
     };
 
     const handleNext = () => {
-        let updatedAnswers = answers;
         if (currentQuestion.type === "text" || currentQuestion.type === "textarea") {
-            updatedAnswers = { ...answers, [currentQuestion.id]: textInputs[currentQuestion.id] || "" };
-            setAnswers(updatedAnswers);
+            setAnswers({ ...answers, [currentQuestion.id]: textInputs[currentQuestion.id] || "" });
         }
-        goToNextQuestion(updatedAnswers);
+        goToNextQuestion();
     };
 
     const canProceed = () => {
@@ -211,22 +211,34 @@ export default function QuestionnairePage() {
 
     const requiredQuestionsAnswered = QUESTIONS.filter(q => !q.optional && shouldShowQuestion(q))
         .every(q => {
+            let isValid = false;
             if (q.type === "text" || q.type === "textarea") {
-                return (textInputs[q.id] || "").trim().length > 0;
+                isValid = (textInputs[q.id] || "").trim().length > 0;
+            } else if (q.type === "multiselect") {
+                isValid = ((answers[q.id] as string[]) || []).length > 0;
+            } else {
+                isValid = !!answers[q.id];
             }
-            if (q.type === "multiselect") {
-                return ((answers[q.id] as string[]) || []).length > 0;
+            if (!isValid) {
+                console.log("Validation failed for:", q.id, "Type:", q.type, "Value:", answers[q.id] || textInputs[q.id]);
             }
-            return !!answers[q.id];
+            return isValid;
         });
 
     const handleJsonUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (!file) return;
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
 
+        console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+        // Reset states
         setUploadError(null);
         setUploadSuccess(false);
 
+        // Validate file type
         if (!file.name.toLowerCase().endsWith('.json')) {
             setUploadError('Please upload a valid JSON file (must end with .json)');
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -237,14 +249,25 @@ export default function QuestionnairePage() {
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const jsonData = JSON.parse(content);
+                console.log('File content loaded, length:', content.length);
 
-                if (Array.isArray(jsonData) || typeof jsonData !== 'object' || jsonData === null) {
-                    setUploadError('Invalid JSON format. Expected an object with question IDs as keys.');
+                const jsonData = JSON.parse(content);
+                console.log('JSON parsed successfully:', jsonData);
+
+                // Validate JSON structure
+                if (Array.isArray(jsonData)) {
+                    setUploadError('Invalid JSON format. Your file contains an array [...]. Please use an object format like: {"feature": "My Feature", "jurisdictions": ["EU", "US"]}. Download the sample template for the correct format.');
                     if (fileInputRef.current) fileInputRef.current.value = '';
                     return;
                 }
 
+                if (typeof jsonData !== 'object' || jsonData === null) {
+                    setUploadError('Invalid JSON format. Expected an object with question IDs as keys. Download the sample template to see the correct format.');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                    return;
+                }
+
+                // Populate answers and textInputs
                 const newAnswers: Record<string, string | string[]> = { ...answers };
                 const newTextInputs: Record<string, string> = { ...textInputs };
                 let processedCount = 0;
@@ -258,6 +281,7 @@ export default function QuestionnairePage() {
                             if (Array.isArray(jsonData[question.id])) {
                                 newAnswers[question.id] = jsonData[question.id].map(String);
                             } else {
+                                // Convert single value to array for multiselect
                                 newAnswers[question.id] = [String(jsonData[question.id])];
                             }
                         } else {
@@ -266,32 +290,53 @@ export default function QuestionnairePage() {
                     }
                 });
 
+                console.log('Processed', processedCount, 'questions');
+
                 if (processedCount === 0) {
-                    setUploadError('No matching question fields found in JSON.');
+                    setUploadError('No matching question fields found in JSON. Please check that your field names match the question IDs. Download the sample template to see the correct field names.');
                     if (fileInputRef.current) fileInputRef.current.value = '';
                     return;
                 }
 
+                // ✅ Success - update state
                 setAnswers(newAnswers);
                 setTextInputs(newTextInputs);
                 setUploadSuccess(true);
                 setShowUploadSection(false);
+
+                console.log('Upload successful! Loaded', processedCount, 'answers');
+
+                // Auto-hide success message after 3 seconds
                 setTimeout(() => setUploadSuccess(false), 3000);
+
+                // Reset input
                 if (fileInputRef.current) fileInputRef.current.value = '';
             } catch (error) {
-                setUploadError(`Failed to parse JSON file`);
+                console.error('JSON parse error:', error);
+                setUploadError(`Failed to parse JSON file: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }
         };
+
+        reader.onerror = (error) => {
+            console.error('File read error:', error);
+            setUploadError('Failed to read file. Please try again.');
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        };
+
         reader.readAsText(file);
     };
 
     const downloadSampleJson = () => {
         const sampleData: Record<string, any> = {};
         QUESTIONS.forEach(q => {
-            if (q.type === 'multiselect') sampleData[q.id] = [];
-            else sampleData[q.id] = '';
+            if (q.type === 'multiselect') {
+                sampleData[q.id] = [];
+            } else {
+                sampleData[q.id] = '';
+            }
         });
+
         const blob = new Blob([JSON.stringify(sampleData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -305,6 +350,7 @@ export default function QuestionnairePage() {
 
     return (
         <div className="min-h-screen bg-parchment dark:bg-[#0A0A0A] text-charcoal dark:text-parchment flex flex-col">
+            {/* Header */}
             <header className="px-6 py-6 border-b border-charcoal/5 dark:border-white/5 flex justify-between items-center bg-parchment/50 dark:bg-[#0A0A0A]/50 backdrop-blur-sm sticky top-0 z-10">
                 <div className="flex items-center gap-4">
                     <Link href="/" className="p-2 hover:bg-teal/5 rounded-full transition-colors">
@@ -357,47 +403,140 @@ export default function QuestionnairePage() {
                                     )}
                                 </div>
 
+                                {/* JSON Upload Section */}
                                 {currentStep === 0 && (
-                                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mb-6"
+                                    >
+                                        {/* Upload Success Notification */}
                                         <AnimatePresence>
                                             {uploadSuccess && (
-                                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mb-4 p-4 bg-teal/10 border border-teal/30 rounded-sm flex items-center gap-3">
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="mb-4 p-4 bg-teal/10 border border-teal/30 rounded-sm flex items-center gap-3"
+                                                >
                                                     <CheckCircle2 className="w-5 h-5 text-teal flex-shrink-0" />
-                                                    <p className="text-sm text-teal font-medium">Answers loaded successfully!</p>
+                                                    <p className="text-sm text-teal font-medium">
+                                                        Answers loaded successfully! You can now review and edit them.
+                                                    </p>
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
+
+                                        {/* Upload Error Notification */}
                                         <AnimatePresence>
                                             {uploadError && (
-                                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mb-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-sm flex items-start gap-3">
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="mb-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-sm flex items-start gap-3"
+                                                >
                                                     <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                                    <div className="flex-1"><p className="text-sm text-red-600 dark:text-red-400 font-medium">{uploadError}</p></div>
-                                                    <button onClick={() => setUploadError(null)} className="text-red-600 hover:text-red-800"><X className="w-4 h-4" /></button>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                                            {uploadError}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setUploadError(null)}
+                                                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
-                                        <button onClick={() => setShowUploadSection(!showUploadSection)} className="w-full p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm hover:border-teal/50 hover:bg-teal/5 transition-all flex items-center justify-between group">
+
+                                        {/* Upload Toggle Button */}
+                                        <button
+                                            onClick={() => setShowUploadSection(!showUploadSection)}
+                                            className="w-full p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm hover:border-teal/50 hover:bg-teal/5 transition-all flex items-center justify-between group"
+                                        >
                                             <div className="flex items-center gap-3">
                                                 <FileJson className="w-5 h-5 text-teal" />
                                                 <div className="text-left">
                                                     <p className="font-medium text-sm">Upload JSON Answers</p>
-                                                    <p className="text-xs text-slate/60 dark:text-slate/40">Import responses</p>
+                                                    <p className="text-xs text-slate/60 dark:text-slate/40">
+                                                        Import pre-filled questionnaire responses
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <ChevronRight className={cn("w-5 h-5 text-slate/40 transition-transform duration-300", showUploadSection && "rotate-90")} />
+                                            <ChevronRight
+                                                className={cn(
+                                                    "w-5 h-5 text-slate/40 transition-transform duration-300",
+                                                    showUploadSection && "rotate-90"
+                                                )}
+                                            />
                                         </button>
+
+                                        {/* Upload Section Content */}
                                         <AnimatePresence>
                                             {showUploadSection && (
-                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: "auto" }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="overflow-hidden"
+                                                >
                                                     <div className="mt-3 p-5 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm space-y-4">
+                                                        {/* File Input */}
                                                         <div>
-                                                            <label htmlFor="json-upload" className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-charcoal/20 dark:border-white/20 rounded-sm hover:border-teal/50 hover:bg-teal/5 transition-all cursor-pointer group">
+                                                            <label
+                                                                htmlFor="json-upload"
+                                                                className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-charcoal/20 dark:border-white/20 rounded-sm hover:border-teal/50 hover:bg-teal/5 transition-all cursor-pointer group"
+                                                            >
                                                                 <Upload className="w-8 h-8 text-teal mb-3 group-hover:scale-110 transition-transform" />
-                                                                <p className="text-sm font-medium text-charcoal dark:text-parchment mb-1">Click to upload JSON file</p>
+                                                                <p className="text-sm font-medium text-charcoal dark:text-parchment mb-1">
+                                                                    Click to upload JSON file
+                                                                </p>
+                                                                <p className="text-xs text-slate/60 dark:text-slate/40">
+                                                                    or drag and drop your questionnaire JSON here
+                                                                </p>
                                                             </label>
-                                                            <input ref={fileInputRef} id="json-upload" type="file" accept=".json,application/json" onChange={handleJsonUpload} className="hidden" />
+                                                            <input
+                                                                ref={fileInputRef}
+                                                                id="json-upload"
+                                                                type="file"
+                                                                accept=".json,application/json"
+                                                                onChange={handleJsonUpload}
+                                                                className="hidden"
+                                                            />
                                                         </div>
-                                                        <button onClick={downloadSampleJson} className="w-full p-3 bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 rounded-sm hover:bg-charcoal/10 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-sm font-medium"><FileJson className="w-4 h-4" /> Download Sample JSON Template</button>
+
+                                                        {/* Divider */}
+                                                        <div className="relative">
+                                                            <div className="absolute inset-0 flex items-center">
+                                                                <div className="w-full border-t border-charcoal/10 dark:border-white/10"></div>
+                                                            </div>
+                                                            <div className="relative flex justify-center text-xs uppercase">
+                                                                <span className="bg-white dark:bg-[#151515] px-2 text-slate/50">
+                                                                    or
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Download Sample Button */}
+                                                        <button
+                                                            onClick={downloadSampleJson}
+                                                            className="w-full p-3 bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 rounded-sm hover:bg-charcoal/10 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-sm font-medium"
+                                                        >
+                                                            <FileJson className="w-4 h-4" />
+                                                            Download Sample JSON Template
+                                                        </button>
+
+                                                        {/* Info Text */}
+                                                        <div className="flex items-start gap-2 p-3 bg-teal/5 border border-teal/20 rounded-sm">
+                                                            <Info className="w-4 h-4 text-teal flex-shrink-0 mt-0.5" />
+                                                            <p className="text-xs text-slate/70 dark:text-slate/50">
+                                                                Upload a JSON file with your questionnaire answers. The file should contain question IDs as keys and your answers as values. Download the template to see the expected format.
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </motion.div>
                                             )}
@@ -411,100 +550,190 @@ export default function QuestionnairePage() {
                                             const isSelected = currentQuestion.type === "multiselect"
                                                 ? ((answers[currentQuestion.id] as string[]) || []).includes(option)
                                                 : answers[currentQuestion.id] === option;
+
                                             return (
-                                                <button key={option} onClick={() => handleOptionSelect(option)} className={cn("group flex items-center justify-between p-5 rounded-sm border transition-all duration-300 text-left", isSelected ? "bg-teal border-teal text-parchment" : "bg-white dark:bg-[#151515] border-charcoal/10 dark:border-white/10 hover:border-teal/50 hover:bg-teal/5")}>
+                                                <button
+                                                    key={option}
+                                                    onClick={() => handleOptionSelect(option)}
+                                                    className={cn(
+                                                        "group flex items-center justify-between p-5 rounded-sm border transition-all duration-300 text-left",
+                                                        isSelected
+                                                            ? "bg-teal border-teal text-parchment"
+                                                            : "bg-white dark:bg-[#151515] border-charcoal/10 dark:border-white/10 hover:border-teal/50 hover:bg-teal/5"
+                                                    )}
+                                                >
                                                     <span className="font-medium">{option}</span>
-                                                    <div className={cn("w-5 h-5 rounded-full border flex items-center justify-center transition-colors", isSelected ? "bg-parchment border-parchment" : "border-charcoal/20 dark:border-white/20 group-hover:border-teal")}>
-                                                        {isSelected && <Check className="w-3 h-3 text-teal" />}
+                                                    <div className={cn(
+                                                        "w-5 h-5 rounded-full border flex items-center justify-center transition-colors",
+                                                        isSelected
+                                                            ? "bg-parchment border-parchment"
+                                                            : "border-charcoal/20 dark:border-white/20 group-hover:border-teal"
+                                                    )}>
+                                                        {isSelected && (
+                                                            <Check className="w-3 h-3 text-teal" />
+                                                        )}
                                                     </div>
                                                 </button>
                                             );
                                         })}
                                         {currentQuestion.type === "multiselect" && (
-                                            <button onClick={handleNext} disabled={!canProceed()} className={cn("mt-4 px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all", !canProceed() && "opacity-50 cursor-not-allowed")}>Continue</button>
+                                            <button
+                                                onClick={handleNext}
+                                                disabled={!canProceed()}
+                                                className={cn(
+                                                    "mt-4 px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all",
+                                                    !canProceed() && "opacity-50 cursor-not-allowed"
+                                                )}
+                                            >
+                                                Continue
+                                            </button>
                                         )}
                                     </div>
                                 ) : currentQuestion.type === "text" ? (
                                     <div className="space-y-4">
-                                        <input type="text" value={textInputs[currentQuestion.id] || ""} onChange={(e) => handleTextInput(e.target.value)} placeholder={currentQuestion.placeholder} className="w-full p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm focus:ring-2 focus:ring-teal/20 focus:border-teal outline-none transition-all font-sans text-lg" />
-                                        <button onClick={handleNext} disabled={!canProceed()} className={cn("px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all", !canProceed() && "opacity-50 cursor-not-allowed")}>Continue</button>
+                                        <input
+                                            type="text"
+                                            value={textInputs[currentQuestion.id] || ""}
+                                            onChange={(e) => handleTextInput(e.target.value)}
+                                            placeholder={currentQuestion.placeholder}
+                                            className="w-full p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm focus:ring-2 focus:ring-teal/20 focus:border-teal outline-none transition-all font-sans text-lg"
+                                        />
+                                        <button
+                                            onClick={handleNext}
+                                            disabled={!canProceed()}
+                                            className={cn(
+                                                "px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all",
+                                                !canProceed() && "opacity-50 cursor-not-allowed"
+                                            )}
+                                        >
+                                            Continue
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        <textarea value={textInputs[currentQuestion.id] || ""} onChange={(e) => handleTextInput(e.target.value)} placeholder={currentQuestion.placeholder} className="w-full h-48 p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm focus:ring-2 focus:ring-teal/20 focus:border-teal outline-none transition-all resize-none font-sans text-lg leading-relaxed" />
-                                        <button onClick={handleNext} disabled={!canProceed()} className={cn("px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all", !canProceed() && "opacity-50 cursor-not-allowed")}>Continue</button>
+                                        <textarea
+                                            value={textInputs[currentQuestion.id] || ""}
+                                            onChange={(e) => handleTextInput(e.target.value)}
+                                            placeholder={currentQuestion.placeholder}
+                                            className="w-full h-48 p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm focus:ring-2 focus:ring-teal/20 focus:border-teal outline-none transition-all resize-none font-sans text-lg leading-relaxed"
+                                        />
+                                        <button
+                                            onClick={handleNext}
+                                            disabled={!canProceed()}
+                                            className={cn(
+                                                "px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all",
+                                                !canProceed() && "opacity-50 cursor-not-allowed"
+                                            )}
+                                        >
+                                            Continue
+                                        </button>
                                     </div>
                                 )}
 
                                 {currentStep > 0 && (
-                                    <button onClick={goToPreviousQuestion} className="text-slate/60 hover:text-teal transition-colors flex items-center gap-2 text-sm font-medium">
-                                        <ChevronLeft className="w-4 h-4" /> Previous Question
+                                    <button
+                                        onClick={goToPreviousQuestion}
+                                        className="text-slate/60 hover:text-teal transition-colors flex items-center gap-2 text-sm font-medium"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                        Previous Question
                                     </button>
                                 )}
                             </motion.div>
                         ) : (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-8"
+                            >
                                 <div className="space-y-2">
-                                    <span className="text-gold font-mono text-xs uppercase tracking-[0.2em]">Review & Submit</span>
-                                    <h2 className="font-serif text-3xl md:text-4xl text-teal dark:text-parchment">Ready for Legal Analysis</h2>
-                                    <p className="text-slate/60 dark:text-slate/40 text-lg">Review your answers and submit for comprehensive legal compliance analysis.</p>
+                                    <span className="text-gold font-mono text-xs uppercase tracking-[0.2em]">
+                                        Review & Submit
+                                    </span>
+                                    <h2 className="font-serif text-3xl md:text-4xl text-teal dark:text-parchment">
+                                        Ready for Legal Analysis
+                                    </h2>
+                                    <p className="text-slate/60 dark:text-slate/40 text-lg">
+                                        Review your answers and submit for comprehensive legal compliance analysis.
+                                    </p>
                                 </div>
 
                                 <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm p-6 space-y-4 max-h-96 overflow-y-auto">
-                                    {QUESTIONS.filter(q => shouldShowQuestion(q)).map((q) => (
+                                    {QUESTIONS.filter(shouldShowQuestion).map((q) => (
                                         <div key={q.id} className="border-b border-charcoal/5 dark:border-white/5 pb-4 last:border-0">
                                             <h3 className="font-medium text-sm text-slate/60 dark:text-slate/40">{q.title}</h3>
-                                            <p className="text-lg mt-1">{Array.isArray(answers[q.id]) ? (answers[q.id] as string[]).join(", ") : answers[q.id] || textInputs[q.id] || "Not answered"}</p>
+                                            <p className="text-lg mt-1">
+                                                {Array.isArray(answers[q.id])
+                                                    ? (answers[q.id] as string[]).join(", ")
+                                                    : answers[q.id] || textInputs[q.id] || "Not answered"}
+                                            </p>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex justify-between items-center pt-4">
-                                    <button onClick={goToPreviousQuestion} className="text-slate/60 hover:text-teal transition-colors flex items-center gap-2 text-sm font-medium">
-                                        <ChevronLeft className="w-4 h-4" /> Back to Questions
+                                    <button
+                                        onClick={goToPreviousQuestion}
+                                        className="text-slate/60 hover:text-teal transition-colors flex items-center gap-2 text-sm font-medium"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                        Back to Questions
                                     </button>
 
                                     <button
                                         onClick={async () => {
                                             if (!requiredQuestionsAnswered || isSubmitting) return;
-
-                                            // --- UPDATE: ALLOW SUBMISSION WITHOUT LOGIN ---
-                                            // We now check for token but proceed anyway if missing
-                                            // (Assuming backend is updated to allow this)
-                                            const token = localStorage.getItem("access_token");
-                                            // REMOVED: The check that forced redirection to login
-
                                             setIsSubmitting(true);
                                             try {
                                                 const payload = {
                                                     ...textInputs,
-                                                    ...Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, Array.isArray(v) ? v : v]))
+                                                    ...Object.fromEntries(
+                                                        Object.entries(answers).map(([k, v]) => [k, Array.isArray(v) ? v : v])
+                                                    )
                                                 };
 
-                                                const contextData = { ...payload, timestamp: new Date().toISOString() };
+                                                // Ensure feature_id is present (fallback to generated UUID or timestamp if not)
+                                                const contextData = {
+                                                    ...payload,
+                                                    timestamp: new Date().toISOString()
+                                                };
 
-                                                // Pass token if we have it, otherwise undefined
-                                                const response = await api.pipeline.runCore({ context_data: contextData }, token || undefined);
+                                                const response = await api.pipeline.runCore({
+                                                    context_data: contextData
+                                                });
 
+                                                // Redirect to Analysis page with run_id and feature_id
+                                                // Assuming backend returns feature_id and run_id. If specific ID didn't exist, one is usually generated.
+                                                // Based on app.py run_full_pipeline usually returns these.
                                                 const runId = response.run_id || "mock-run-" + Date.now();
                                                 const featureId = response.feature_id || "mock-feature-" + Date.now();
 
+                                                // Use window.location or router.push
+                                                // router.push is available now.
+
+                                                // For now, let's just go to analysis. The analysis page currently mocks data, but we pass params for future.
                                                 router.push(`/analysis?feature_id=${featureId}&run_id=${runId}`);
 
-                                            } catch (error: any) {
+                                            } catch (error) {
                                                 console.error("Submission failed:", error);
                                                 alert("Failed to submit assessment. Please try again.");
                                                 setIsSubmitting(false);
                                             }
                                         }}
                                         disabled={!requiredQuestionsAnswered || isSubmitting}
-                                        className={cn("relative inline-flex items-center justify-center px-10 py-4 bg-teal text-parchment font-serif text-lg rounded-sm shadow-xl transition-all duration-500 group overflow-hidden", (!requiredQuestionsAnswered || isSubmitting) && "opacity-50 cursor-not-allowed grayscale")}
+                                        className={cn(
+                                            "relative inline-flex items-center justify-center px-10 py-4 bg-teal text-parchment font-serif text-lg rounded-sm shadow-xl transition-all duration-500 group overflow-hidden",
+                                            (!requiredQuestionsAnswered || isSubmitting) && "opacity-50 cursor-not-allowed grayscale"
+                                        )}
                                     >
                                         <span className="relative z-10 flex items-center">
                                             {isSubmitting ? "Submitting..." : "Submit for Legal Review"}
                                             {!isSubmitting && <Gavel className="ml-3 w-5 h-5 group-hover:rotate-45 transition-transform duration-500" />}
                                         </span>
-                                        <motion.div whileTap={{ scale: 1.5, opacity: 0.2 }} className="absolute inset-0 bg-charcoal opacity-0 group-hover:opacity-10 transition-opacity" />
+                                        <motion.div
+                                            whileTap={{ scale: 1.5, opacity: 0.2 }}
+                                            className="absolute inset-0 bg-charcoal opacity-0 group-hover:opacity-10 transition-opacity"
+                                        />
                                     </button>
                                 </div>
                             </motion.div>
@@ -512,6 +741,8 @@ export default function QuestionnairePage() {
                     </AnimatePresence>
                 </div>
             </main>
+
+            {/* Background Decoration */}
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[url('/legal-bg.jpeg')] bg-cover bg-center opacity-20 grayscale mix-blend-multiply dark:mix-blend-overlay" />
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-teal/5 via-transparent to-transparent" />
