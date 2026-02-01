@@ -15,12 +15,19 @@ from pydantic import BaseModel, EmailStr
 # from database.database import get_database <-- Removed MongoDB dependency
 from features import auth
 # from features.auth import get_current_user <-- Removed Auth dependency
-from api.streaming import router as streaming_router
+# from features.auth import get_current_user <-- Removed Auth dependency
+# from api.streaming import router as streaming_router <-- Removed separate file
+
+import asyncio
+from sse_starlette.sse import EventSourceResponse
+from fastapi import Request
 
 # --- Pipeline Imports ---
 from pipeline.core_pipeline import run_core_pipeline
 from pipeline.risk_pipeline import run_risk_pipeline
 from pipeline.autofix_pipeline import run_autofix_pipeline
+from features.compliance_diff.diff_engine import generate_compliance_diff
+from features.compliance_history.history_manager import get_previous_verdict
 
 # --- App Configuration ---
 app = FastAPI(title="JurAI Compliance System")
@@ -46,7 +53,8 @@ app.add_middleware(
 )
 
 # Include external routers
-app.include_router(streaming_router)
+# Include external routers
+# app.include_router(streaming_router) <-- Removed
 
 # --- Local Storage Helper (Replacing MongoDB) ---
 STORAGE_FILE = "temp_data.json"
@@ -398,3 +406,139 @@ def get_run_results(
         "agent_trace": run_record.get("agent_trace"),
         "status": run_record.get("status")
     }
+
+# --- Streaming Endpoint (Merged from streaming.py) ---
+
+@app.post("/stream/pipeline")
+async def stream_pipeline(request: Request):
+    """
+    SSE Endpoint that runs the full pipeline and streams events.
+    Receives JSON body with context_data.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    context_data = body
+    feature_id = context_data.get("feature_id", "unknown_feature")
+
+    queue = asyncio.Queue()
+    
+    # Check for client disconnect
+    async def cleanup():
+        # Logic to cancel tasks if needed
+        pass
+
+    # Capture the main event loop to use inside the thread callback
+    main_loop = asyncio.get_running_loop()
+
+    def on_event_callback(event_type, data):
+        """
+        Bridge from Sync (Agent Code) -> Async Queue
+        """
+        # Use call_soon_threadsafe with the captured main loop
+        main_loop.call_soon_threadsafe(queue.put_nowait, {"event": event_type, "data": data})
+
+    async def event_generator():
+        # Submit the sync task to thread
+        loop = asyncio.get_running_loop()
+        yield {"event": "status", "data": "Pipeline Started"}
+
+        # Define the task wrapper
+        def run_sync_pipeline():
+            try:
+                result = run_core_pipeline(context_data, on_event=on_event_callback)
+                return result
+            except Exception as e:
+                logger.error(f"Pipeline Error: {e}")
+                raise e
+
+        # Run core pipeline
+        core_future = loop.run_in_executor(None, run_sync_pipeline)
+        
+        core_result = None
+        
+        while not core_future.done():
+            # Wait for queue items OR core completion
+            get_task = asyncio.create_task(queue.get())
+            
+            done, pending = await asyncio.wait(
+                [get_task, core_future],
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            if get_task in done:
+                event = get_task.result()
+                yield {"event": event["event"], "data": json.dumps(event["data"])}
+            else:
+                # Core future finished, cancel the get wait
+                get_task.cancel()
+        
+        # Core is done
+        try:
+            core_result = await core_future
+            # Yield Verdict
+            yield {"event": "verdict", "data": json.dumps(core_result.get("verdict", {}))}
+            
+            # 2. RUN PARALLEL TASKS (Risk + Diff)
+            yield {"event": "status", "data": "Running Risk & Diff Analysis"}
+            
+            # Risk Wrapper
+            def run_risk():
+                return run_risk_pipeline(feature_id, "temp_run_id", verdict_data=core_result.get("verdict", {}))
+                
+            # Diff Wrapper
+            def run_diff():
+                prev = get_previous_verdict(feature_id)
+                # Call generate_compliance_diff. 
+                # Note: We need real snapshots from previous verdict to do a real diff.
+                # For this merged version, we try to fetch them.
+                prev_verdict = prev.get("verdict") if prev else None
+                prev_snap = prev.get("laws_snapshot") if prev else None
+                curr_snap = core_result.get("laws_snapshot") # Assuming core pipeline returns this mostly in metadata or likely via store_verdict side effect
+                # Actually run_core_pipeline returns a dict with 'compliance_diff' already if it ran it?
+                # Looking at core_pipeline.py, it DOES run compliance_diff (Step 6).
+                # So we might not need to run it again here if core pipeline accepts it.
+                # However, streaming.py had it parallel. 
+                # Let's stick to streaming.py logic for now to ensure behavior consistency, 
+                # but run_core_pipeline might have already done it. 
+                # If run_core_pipeline does it, doing it again is wasteful but safe.
+                # Let's trust run_core_pipeline returned it if it did.
+                
+                # Check if core_result already has diff
+                if core_result.get("compliance_diff"):
+                    return core_result.get("compliance_diff")
+                
+                # If not, generate it manually (fallback)
+                return generate_compliance_diff(
+                    previous_verdict=prev_verdict,
+                    current_verdict=core_result.get("verdict", {}),
+                    previous_laws_snapshot=prev_snap,
+                    current_laws_snapshot=curr_snap
+                )
+
+            risk_future = loop.run_in_executor(None, run_risk)
+            diff_future = loop.run_in_executor(None, run_diff)
+            
+            # Wait for both
+            results = await asyncio.gather(risk_future, diff_future, return_exceptions=True)
+            risk_res, diff_res = results
+            
+            if isinstance(risk_res, Exception):
+                logger.error(f"Risk Error: {risk_res}")
+                yield {"event": "error", "data": f"Risk Failed: {str(risk_res)}"}
+            else:
+                yield {"event": "risk", "data": json.dumps(risk_res.get("risk_assessment", {}))}
+                
+            if isinstance(diff_res, Exception):
+                logger.error(f"Diff Error: {diff_res}")
+            else:
+                yield {"event": "diff", "data": json.dumps(diff_res)}
+                 
+            yield {"event": "done", "data": "Pipeline Complete"}
+
+        except Exception as e:
+            yield {"event": "error", "data": str(e)}
+
+    return EventSourceResponse(event_generator())
