@@ -49,6 +49,9 @@ export default function VerdictPage() {
     // State for Dynamic Data
     const [detectedIssues, setDetectedIssues] = useState<any[]>([]);
     const [legalEvidences, setLegalEvidences] = useState<any[]>([]);
+    const [verdictSummary, setVerdictSummary] = useState<string>("");
+    const [riskAssessment, setRiskAssessment] = useState<any>(null);
+
     const [metrics, setMetrics] = useState({
         confidence: 0,
         riskScore: 0,
@@ -111,7 +114,23 @@ export default function VerdictPage() {
 
                 // 5. Map Metrics
                 // Prefer Risk Assessment pipeline data if available, otherwise fall back to Verdict data
-                const riskData = result.risk_assessment || {};
+                let riskData = result.risk_assessment || {};
+
+                // Handle JSON string if applicable
+                if (typeof riskData === 'string') {
+                    try {
+                        const cleanJson = riskData.replace(/```json/g, '').replace(/```/g, '').trim();
+                        riskData = JSON.parse(cleanJson);
+                    } catch (e) {
+                        console.error("Failed to parse risk JSON string:", e);
+                        riskData = {};
+                    }
+                }
+
+                // Handle double nesting if present (result.risk_assessment.risk_assessment)
+                if (riskData && riskData.risk_assessment) {
+                    riskData = riskData.risk_assessment;
+                }
 
                 // Try to get risk score from Risk Pipeline -> then Verdict -> then Default
                 let calculatedRisk = 50; // Default
@@ -162,6 +181,9 @@ export default function VerdictPage() {
                 // Update State
                 setDetectedIssues(issues);
                 setLegalEvidences(evidences);
+                setVerdictSummary(verdictData.summary || "");
+                setRiskAssessment(riskData);
+
                 setMetrics({
                     confidence: confidence,
                     riskScore: Math.round(overallRisk),
@@ -228,78 +250,142 @@ export default function VerdictPage() {
                 <TabNavigation activeTab="verdict" />
 
                 {/* Metrics Section */}
-                <div className="mb-12">
-                    <h2 className="font-serif text-2xl text-teal mb-6">Case Overview</h2>
+                <div className="mb-8">
+                    <h2 className="font-serif text-2xl text-teal mb-4">Case Overview</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-6">
-                            <div className="flex items-center gap-3 mb-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-5">
+                            <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-teal/10 rounded-lg">
-                                    <Target className="w-5 h-5 text-teal" />
+                                    <Target className="w-4 h-4 text-teal" />
                                 </div>
                                 <div>
                                     <div className="text-2xl font-serif text-teal">{metrics.confidence}%</div>
-                                    <div className="text-sm font-mono text-slate/40">Confidence</div>
+                                    <div className="text-xs font-mono text-slate/40">Confidence</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-6">
-                            <div className="flex items-center gap-3 mb-3">
+                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-5">
+                            <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-blue-500/10 rounded-lg">
-                                    <Clock className="w-5 h-5 text-blue-500" />
+                                    <Clock className="w-4 h-4 text-blue-500" />
                                 </div>
                                 <div>
                                     <div className="text-xl font-serif">{metrics.time}</div>
-                                    <div className="text-sm font-mono text-slate/40">Analysis Time</div>
+                                    <div className="text-xs font-mono text-slate/40">Analysis Time</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-6">
-                            <div className="flex items-center gap-3 mb-3">
+                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-5">
+                            <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-red-500/10 rounded-lg">
-                                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                                    <AlertTriangle className="w-4 h-4 text-red-500" />
                                 </div>
                                 <div>
                                     <div className="text-2xl font-serif text-red-500">{criticalIssues}</div>
-                                    <div className="text-sm font-mono text-slate/40">Critical Issues</div>
+                                    <div className="text-xs font-mono text-slate/40">Critical Issues</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-6">
-                            <div className="flex items-center gap-3 mb-3">
+                        <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-5">
+                            <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-purple-500/10 rounded-lg">
-                                    <ScaleIcon className="w-5 h-5 text-purple-500" />
+                                    <ScaleIcon className="w-4 h-4 text-purple-500" />
                                 </div>
                                 <div>
                                     <div className="text-xl font-serif">{totalIssues}</div>
-                                    <div className="text-sm font-mono text-slate/40">Total Issues</div>
+                                    <div className="text-xs font-mono text-slate/40">Total Issues</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#151515] border border-teal/20 rounded-lg p-6">
-                        <h3 className="font-serif text-lg text-teal mb-3">Frameworks Analyzed</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {Array.from(new Set(legalEvidences.flatMap(e => e.frameworks || [e.jurisdiction]))).map((framework: any) => (
-                                <span
-                                    key={framework}
-                                    className="px-3 py-1.5 bg-gradient-to-r from-blue-500/5 to-purple-500/5 border border-blue-500/10 text-sm font-mono rounded-full"
-                                >
-                                    {framework}
-                                </span>
-                            ))}
-                            {legalEvidences.length === 0 && <span className="text-slate/40 text-sm">No specific frameworks cited.</span>}
+                </div>
+
+                {/* Verdict Summary - Full Width */}
+                <div className="mb-8">
+                    <div className="bg-white dark:bg-[#151515] border border-teal/20 rounded-lg p-6 shadow-sm">
+                        <h3 className="font-serif text-xl text-teal mb-3 flex items-center gap-2">
+                            <Brain className="w-5 h-5" />
+                            Verdict Summary
+                        </h3>
+                        <div className="text-slate-600 dark:text-slate-300 text-base leading-relaxed border-l-4 border-teal/20 pl-4">
+                            {verdictSummary || "No summary available for this analysis."}
                         </div>
                     </div>
                 </div>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    {/* Left Column - Detected Issues */}
+                {/* Risk Assessment - Full Width Section */}
+                <div className="mb-10">
+                    <h2 className="font-serif text-2xl text-red-500 mb-4 flex items-center gap-2">
+                        <ShieldAlert className="w-6 h-6" />
+                        Risk Assessment
+                    </h2>
+
+                    <div className="bg-white dark:bg-[#151515] border border-red-500/20 rounded-lg p-6">
+                        {/* Top Stats */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6 border-b border-charcoal/5 dark:border-white/5 pb-6">
+                            <div className="text-center">
+                                <div className="text-xs font-mono text-slate/40 mb-1 uppercase tracking-widest">Overall Risk</div>
+                                <div className="text-3xl font-serif font-bold text-red-500">
+                                    {riskAssessment?.overall_risk || "Unknown"}
+                                </div>
+                            </div>
+                            <div className="text-center border-l border-charcoal/5 dark:border-white/5">
+                                <div className="text-xs font-mono text-slate/40 mb-1 uppercase tracking-widest">Confidence</div>
+                                <div className="text-3xl font-serif font-bold text-teal">
+                                    {riskAssessment?.confidence ? Math.round(riskAssessment.confidence * 100) : metrics.confidence}%
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Summary Text */}
+                        <div className="mb-6 bg-red-500/5 p-4 rounded-lg border border-red-500/10">
+                            <div className="text-slate-700 dark:text-slate-300 italic text-base leading-relaxed text-center">
+                                " {riskAssessment?.reasoning || riskAssessment?.summary || "Risk analysis details pending..."} "
+                            </div>
+                        </div>
+
+                        {/* Risk Drivers */}
+                        {riskAssessment?.drivers && riskAssessment.drivers.length > 0 && (
+                            <div>
+                                <h4 className="font-serif text-base text-charcoal dark:text-parchment mb-3 flex items-center gap-2">
+                                    <Activity className="w-4 h-4 text-red-500" />
+                                    Risk Drivers
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {riskAssessment.drivers.map((driver: any, idx: number) => (
+                                        <div key={idx} className="border border-charcoal/5 dark:border-white/5 rounded-lg p-3 bg-charcoal/[0.02] hover:bg-white dark:hover:bg-white/5 transition-colors">
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div className="px-2 py-0.5 bg-charcoal/5 dark:bg-white/10 rounded text-[10px] font-mono font-bold text-slate-500">
+                                                    {driver.law}
+                                                </div>
+                                                <div className={cn(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded border",
+                                                    driver.severity === 'Critical' ? "text-red-600 bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-800" :
+                                                        driver.severity === 'High' ? "text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800" :
+                                                            "text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800"
+                                                )}>
+                                                    {driver.severity}
+                                                </div>
+                                            </div>
+                                            <div className="font-serif text-teal mb-1 text-sm">{driver.clause}</div>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">{driver.reason}</p>
+                                            <div className="mt-2 text-[10px] text-slate/40 text-right">{driver.jurisdiction}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Main Content Grid - Issues & Evidence */}
+                <div className="grid grid-cols-1 gap-12 mb-12">
+                    {/* Detected Issues */}
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-serif text-2xl text-teal flex items-center gap-2">
@@ -311,13 +397,13 @@ export default function VerdictPage() {
                             </span>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {detectedIssues.map((issue) => (
                                 <div
                                     key={issue.id}
-                                    className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-5 hover:shadow-md transition-shadow"
+                                    className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg p-6 hover:shadow-md transition-shadow"
                                 >
-                                    <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-2">
                                             <span className={cn(
                                                 "px-2 py-1 text-xs font-mono rounded",
@@ -327,131 +413,96 @@ export default function VerdictPage() {
                                             )}>
                                                 {issue.severity}
                                             </span>
-                                            <span className="text-sm font-mono text-slate/40">{issue.category}</span>
+                                            <span className="text-xs font-mono text-slate/40 px-2 py-1 bg-charcoal/5 rounded">{issue.category}</span>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-xl font-serif text-teal">{issue.riskScore}%</div>
-                                        </div>
+                                        <div className="text-xl font-serif text-teal">{issue.riskScore}%</div>
                                     </div>
 
-                                    <h3 className="font-serif text-lg mb-2">{issue.title}</h3>
-                                    <p className="text-slate-600 dark:text-slate-400 mb-4">{issue.description}</p>
+                                    <h3 className="font-serif text-lg mb-2 line-clamp-2" title={issue.title}>{issue.title}</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">{issue.description}</p>
 
-                                    <div className="space-y-2">
-                                        <div className="flex items-start gap-2">
-                                            <Zap className="w-4 h-4 text-amber-500 mt-0.5" />
-                                            <span className="text-sm">{issue.impact}</span>
+                                    <div className="space-y-3 pt-4 border-t border-charcoal/5">
+                                        <div>
+                                            <div className="text-xs font-bold text-slate/40 uppercase tracking-wider mb-1">Impact</div>
+                                            <div className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                                                <Zap className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                                {issue.impact}
+                                            </div>
                                         </div>
-                                        <div className="flex items-start gap-2">
-                                            <ClipboardCheck className="w-4 h-4 text-teal mt-0.5" />
-                                            <span className="text-sm">{issue.remediation}</span>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate/40 uppercase tracking-wider mb-1">Remediation</div>
+                                            <div className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                                                <ClipboardCheck className="w-4 h-4 text-teal shrink-0 mt-0.5" />
+                                                {issue.remediation}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             ))}
-                            {detectedIssues.length === 0 && !isLoading && (
-                                <div className="p-6 text-center text-slate-400 border border-dashed rounded-lg">
-                                    No issues detected or analysis is incomplete.
-                                </div>
-                            )}
                         </div>
+                        {detectedIssues.length === 0 && !isLoading && (
+                            <div className="p-8 text-center text-slate-400 border border-dashed rounded-lg bg-charcoal/5">
+                                No specific non-compliance issues detected. Good job!
+                            </div>
+                        )}
                     </div>
 
-                    {/* Right Column - Legal Evidence */}
+                    {/* Legal Evidence Cards */}
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-serif text-2xl text-teal flex items-center gap-2">
                                 <BookOpen className="w-6 h-6" />
-                                Legal Evidence
+                                Legal Regulatory Reference
                             </h2>
                             <span className="text-sm font-mono text-slate/40">
-                                {legalEvidences.length} references
+                                {legalEvidences.length} citations
                             </span>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {legalEvidences.map((evidence) => (
                                 <div
                                     key={evidence.id}
-                                    className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg overflow-hidden"
+                                    className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-lg overflow-hidden flex flex-col hover:border-teal/30 transition-colors"
                                 >
-                                    <div className="p-5">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <span className={cn(
-                                                    "px-2 py-1 text-xs font-mono rounded",
-                                                    evidence.severity === "Critical" ? "bg-red-500/10 text-red-500" :
-                                                        evidence.severity === "High" ? "bg-amber-500/10 text-amber-500" :
-                                                            "bg-blue-500/10 text-blue-500"
-                                                )}>
-                                                    {evidence.severity}
-                                                </span>
-                                                <span className="text-sm font-mono text-slate/40">{evidence.category}</span>
+                                    <div className="p-5 flex-1">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="px-2 py-1 bg-purple-500/10 text-purple-500 text-xs font-mono rounded flex items-center gap-1">
+                                                <ScaleIcon className="w-3 h-3" />
+                                                {evidence.frameworks[0] || "Regulation"}
                                             </div>
-                                            <button
-                                                onClick={() => toggleEvidence(evidence.id)}
-                                                className="text-slate/40 hover:text-teal"
-                                            >
-                                                {expandedEvidence === evidence.id ? (
-                                                    <ChevronUp className="w-5 h-5" />
-                                                ) : (
-                                                    <ChevronDown className="w-5 h-5" />
-                                                )}
-                                            </button>
+                                            <span className="px-2 py-1 bg-charcoal/5 text-slate-500 text-xs font-mono rounded flex items-center gap-1">
+                                                <Globe className="w-3 h-3" />
+                                                {evidence.jurisdiction}
+                                            </span>
                                         </div>
 
-                                        <h3 className="font-serif text-lg mb-2">{evidence.title}</h3>
-                                        <p className="text-slate-600 dark:text-slate-400 mb-4">{evidence.description}</p>
+                                        <h3 className="font-serif text-lg mb-1">{evidence.title}</h3>
+                                        <div className="text-xs font-mono text-teal mb-4">{evidence.reference}</div>
 
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-sm text-slate-500">
-                                                <div className="flex items-center gap-1 mb-1">
-                                                    <Globe className="w-4 h-4" />
-                                                    {evidence.jurisdiction}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <ScaleIcon className="w-4 h-4" />
-                                                    {evidence.frameworks[0]}
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-xl font-serif text-teal">{evidence.riskScore}%</div>
-                                                <div className="text-xs font-mono text-slate/40">Relevance</div>
-                                            </div>
+                                        <div className="mb-4">
+                                            <div className="text-xs font-bold text-slate/40 uppercase tracking-wider mb-1">Reasoning</div>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-4">
+                                                {evidence.content}
+                                            </p>
                                         </div>
                                     </div>
 
-                                    <AnimatePresence>
-                                        {expandedEvidence === evidence.id && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: "auto", opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                            >
-                                                <div className="p-5 border-t border-charcoal/5 dark:border-white/5">
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <div className="text-sm font-mono text-teal">
-                                                            {evidence.reference}
-                                                        </div>
-                                                        <button
-                                                            onClick={() => openLegalDocument(evidence)}
-                                                            className="text-sm font-mono text-teal hover:text-teal/70 flex items-center gap-1"
-                                                        >
-                                                            <FileCode className="w-4 h-4" />
-                                                            View Full Text
-                                                        </button>
-                                                    </div>
-                                                    <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
-                                                        {evidence.content.split('\n\n').map((paragraph: string, idx: number) => (
-                                                            <p key={idx} className="leading-relaxed">
-                                                                {paragraph}
-                                                            </p>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                    <div className="p-4 bg-charcoal/5 dark:bg-white/5 border-t border-charcoal/10 dark:border-white/10 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className={cn("w-2 h-2 rounded-full",
+                                                evidence.severity === "Critical" ? "bg-red-500" :
+                                                    evidence.severity === "High" ? "bg-amber-500" : "bg-blue-500"
+                                            )} />
+                                            <span className="text-xs font-mono text-slate-500">{evidence.severity} Severity</span>
+                                        </div>
+                                        <button
+                                            onClick={() => openLegalDocument(evidence)}
+                                            className="text-xs font-bold text-teal hover:underline flex items-center gap-1"
+                                        >
+                                            View Clause <ChevronDown className="w-3 h-3" />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>

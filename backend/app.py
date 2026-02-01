@@ -361,6 +361,11 @@ def trigger_autofix_pipeline(
     
     if not run_record:
         raise HTTPException(status_code=404, detail="Run ID not found")
+
+    # --- CACHING STRATEGY ---
+    if run_record.get("autofix_json"):
+        logger.info(f"Autofix Cache Hit for {request.run_id}")
+        return {"auto_fix": run_record["autofix_json"]}
         
     try:
         result = run_autofix_pipeline(

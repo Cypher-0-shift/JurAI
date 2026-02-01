@@ -56,12 +56,44 @@ export default function FixesPage() {
                 // Check if 'auto_fix' exists in the DB result
                 let autoFixData = result.auto_fix;
 
+                // Handle JSON string if applicable
+                if (typeof autoFixData === 'string') {
+                    try {
+                        const cleanJson = autoFixData.replace(/```json/g, '').replace(/```/g, '').trim();
+                        autoFixData = JSON.parse(cleanJson);
+                    } catch (e) {
+                        console.error("Failed to parse auto_fix JSON string:", e);
+                        // Don't overwrite with empty object immediately, let it flow to generation if needed
+                        autoFixData = null;
+                    }
+                }
+
+                // Handle double nesting if present (result.auto_fix.auto_fix)
+                if (autoFixData && autoFixData.auto_fix) {
+                    autoFixData = autoFixData.auto_fix;
+                }
+
                 // 2. If no fixes found, Trigger Generation (The "Agentic" part)
                 if (!autoFixData || !autoFixData.fixes || autoFixData.fixes.length === 0) {
                     setGenerating(true);
                     try {
                         const autofixResult = await api.pipeline.runAutofix(featureId, runId);
                         autoFixData = autofixResult.auto_fix;
+
+                        // Handle potential string return from generation too
+                        if (typeof autoFixData === 'string') {
+                            try {
+                                const cleanJson = autoFixData.replace(/```json/g, '').replace(/```/g, '').trim();
+                                autoFixData = JSON.parse(cleanJson);
+                            } catch (e) {
+                                console.error("Failed to parse generated auto_fix JSON:", e);
+                            }
+                        }
+
+                        if (autoFixData && autoFixData.auto_fix) {
+                            autoFixData = autoFixData.auto_fix;
+                        }
+
                     } catch (genError) {
                         console.error("Failed to generate fixes:", genError);
                     } finally {

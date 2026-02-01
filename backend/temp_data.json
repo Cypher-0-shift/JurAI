@@ -1106,6 +1106,160 @@
             "risk_json": null,
             "autofix_json": null,
             "status": "CORE_COMPLETED"
+        },
+        {
+            "run_id": "run_20260201T065735Z_c16f7f",
+            "feature_id": "feat_1769928439377",
+            "timestamp": "2026-02-01T06:57:35.385678",
+            "verdict_json": {
+                "feature": "AI Safety Filter",
+                "needs_geo_specific_logic": true,
+                "confidence": 0.9,
+                "risk_score": 60,
+                "compliance_score": 40,
+                "summary": "The AI Safety Filter feature requires improvements to ensure compliance with Indian data protection laws. The immediate removal of content without human review may raise concerns under Section 72A of the Information Technology Act, 2000 regarding fair and transparent processing. Implementing reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018 is also necessary.",
+                "issues": [
+                    {
+                        "title": "Lack of Human Review",
+                        "description": "The immediate removal of flagged content without human review may conflict with Section 72A's requirements for fair and transparent processing.",
+                        "severity": "High",
+                        "risk_score": 80,
+                        "category": "Data Privacy",
+                        "impact": "Potential legal penalties under the Information Technology Act, 2000.",
+                        "remediation": "Implement human review of flagged content before removal."
+                    },
+                    {
+                        "title": "Inadequate Security Practices",
+                        "description": "The feature must implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.",
+                        "severity": "Medium",
+                        "risk_score": 60,
+                        "category": "Data Privacy",
+                        "impact": "Potential legal penalties under the Indian Privacy Policy Act 2018.",
+                        "remediation": "Establish and maintain a security policy that meets the requirements of the Indian Privacy Policy Act 2018."
+                    }
+                ],
+                "evidence_cited": [
+                    {
+                        "source": "Indian Privacy Policy Act 2018",
+                        "citation": "Section 43A",
+                        "content": "Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.",
+                        "jurisdiction": "India",
+                        "frameworks": [
+                            "General Data Protection Regulation"
+                        ]
+                    },
+                    {
+                        "source": "Information Technology Act, 2000",
+                        "citation": "Section 72A",
+                        "content": "whoever, intentionally or knowingly discloses, uses for financial gain or otherwise, publishes or distributes any personal information in violation of the privacy terms under which such information was obtained or a contract or as is otherwise required by law, shall be punishable with imprisonment for a term which may extend to two years or with fine which may extend to one lakh rupees or with both.",
+                        "jurisdiction": "India",
+                        "frameworks": [
+                            "General Data Protection Regulation"
+                        ]
+                    }
+                ]
+            },
+            "agent_trace": [
+                {
+                    "agent": "Jury_Primary",
+                    "step": "Initial Report",
+                    "content": "{\n  \"name\": \"compliance_report\",\n  \"arguments\": {\n    \"feature\": \"AI Safety Filter\",\n    \"feature_description\": \"This feature automatically detects and removes harmful or inappropriate content from public posts and group chats.\\nIt is used to maintain a safe environment for all users.\",\n    \"needs_geo_specific_logic\": true,\n    \"reasoning\": \"The feature involves AI technology affecting users (uses_ai: Yes, ai_affects_users: Yes) and collects personal data (collects_personal_data: Yes). It is important to consider the legislative framework in India that governs such practices. The Indian Privacy Policy Act 2018, specifically Section 43A, requires reasonable security practices to be followed by body corporates handling sensitive personal data or information.\\nSection 43A(2) of the Act states: 'Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.'\\nMoreover, Section 72A of the Information Technology Act, 2000 emphasizes on fair and transparent processing of personal data.\\nHowever, there seems to be a potential concern regarding the immediate removal of content without human review (additional_context: 'Flagged content is removed immediately without human review.'). It would be important to understand if this practice conflicts with Section 72A's requirements for fair and transparent processing. Further investigation might be necessary.\",\n    \"regions_affected\": [\n      {\n        \"region\": \"India\",\n        \"requirement_summary\": \"Implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.\\nEnsure fair and transparent processing of personal data according to Section 72A of the Information Technology Act, 2000.\",\n        \"regulations\": [\n          {\n            \"name\": \"Indian Privacy Policy Act 2018\",\n            \"citation\": \"Section 43A\",\n            \"snippet\": \"'Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.'\",\n            \"source_id\": \"niveraag_retrieve:indian-privacy-policy-act-2018\"\n          },\n          {\n            \"name\": \"Information Technology Act, 2000\",\n            \"citation\": \"Section 72A\",\n            \"snippet\": \"'whoever, intentionally or knowingly discloses, uses for financial gain or otherwise, publishes or distributes any personal information in violation of the privacy terms under which such information was obtained or a contract or as is otherwise required by law, shall be punishable with imprisonment for a term which may extend to two years or with fine which may extend to one lakh rupees or with both.'\",\n            \"source_id\": \"niveraag_retrieve:information-technology-act-2000\"\n          }\n        ]\n      }\n    ],\n    \"confidence\": 0.85\n  }\n}",
+                    "logs": [
+                        "{\n  \"name\": \"compliance_report\",\n  \"arguments\": {\n    \"feature\": \"AI Safety Filter\",\n    \"feature_description\": \"This feature automatically detects and removes harmful or inappropriate content from public posts and group chats.\\nIt is used to maintain a safe environment for all users.\",\n    \"needs_geo_specific_logic\": true,\n    \"reasoning\": \"The feature involves AI technology affecting users (uses_ai: Yes, ai_affects_users: Yes) and collects personal data (collects_personal_data: Yes).",
+                        "It is important to consider the legislative framework in India that governs such practices.",
+                        "The Indian Privacy Policy Act 2018, specifically Section 43A, requires reasonable security practices to be followed by body corporates handling sensitive personal data or information.\\nSection 43A(2) of the Act states: 'Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.'\\nMoreover, Section 72A of the Information Technology Act, 2000 emphasizes on fair and transparent processing of personal data.\\nHowever, there seems to be a potential concern regarding the immediate removal of content without human review (additional_context: 'Flagged content is removed immediately without human review.').",
+                        "It would be important to understand if this practice conflicts with Section 72A's requirements for fair and transparent processing.",
+                        "Further investigation might be necessary.\",\n    \"regions_affected\": [\n      {\n        \"region\": \"India\",\n        \"requirement_summary\": \"Implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.\\nEnsure fair and transparent processing of personal data according to Section 72A of the Information Technology Act, 2000.\",\n        \"regulations\": [\n          {\n            \"name\": \"Indian Privacy Policy Act 2018\",\n            \"citation\": \"Section 43A\",\n            \"snippet\": \"'Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.'\",\n            \"source_id\": \"niveraag_retrieve:indian-privacy-policy-act-2018\"\n          },\n          {\n            \"name\": \"Information Technology Act, 2000\",\n            \"citation\": \"Section 72A\",\n            \"snippet\": \"'whoever, intentionally or knowingly discloses, uses for financial gain or otherwise, publishes or distributes any personal information in violation of the privacy terms under which such information was obtained or a contract or as is otherwise required by law, shall be punishable with imprisonment for a term which may extend to two years or with fine which may extend to one lakh rupees or with both.'\",\n            \"source_id\": \"niveraag_retrieve:information-technology-act-2000\"\n          }\n        ]\n      }\n    ],\n    \"confidence\": 0.85\n  }\n}"
+                    ],
+                    "timestamp": 1769928763.9765742
+                },
+                {
+                    "agent": "Critic_Reviewer",
+                    "step": "Critique 1",
+                    "content": " The provided jury report is well-supported by the legislative excerpts provided in the user query. The reasoning is clear, concise, and product-oriented. Confidence and open questions are explicitly stated. The report addresses the specified target_region (India). However, there seems to be a missing citation for the Section 72A of the Information Technology Act, 2000.\n\nRecommendation: Add article/section number to the citation for Section 72A of the Information Technology Act, 2000.\n\nNo major issues found.",
+                    "logs": [
+                        "The provided jury report is well-supported by the legislative excerpts provided in the user query.",
+                        "The reasoning is clear, concise, and product-oriented.",
+                        "Confidence and open questions are explicitly stated.",
+                        "The report addresses the specified target_region (India).",
+                        "However, there seems to be a missing citation for the Section 72A of the Information Technology Act, 2000.",
+                        "Recommendation: Add article/section number to the citation for Section 72A of the Information Technology Act, 2000.",
+                        "No major issues found."
+                    ],
+                    "timestamp": 1769928876.2978194
+                },
+                {
+                    "agent": "Judge",
+                    "step": "Final Verdict",
+                    "content": " {\n  \"feature\": \"AI Safety Filter\",\n  \"needs_geo_specific_logic\": true,\n  \"confidence\": 0.9,\n  \"risk_score\": 60,\n  \"compliance_score\": 40,\n  \"summary\": \"The AI Safety Filter feature requires improvements to ensure compliance with Indian data protection laws. The immediate removal of content without human review may raise concerns under Section 72A of the Information Technology Act, 2000 regarding fair and transparent processing. Implementing reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018 is also necessary.\",\n  \"issues\": [\n    {\n      \"title\": \"Lack of Human Review\",\n      \"description\": \"The immediate removal of flagged content without human review may conflict with Section 72A's requirements for fair and transparent processing.\",\n      \"severity\": \"High\",\n      \"risk_score\": 80,\n      \"category\": \"Data Privacy\",\n      \"impact\": \"Potential legal penalties under the Information Technology Act, 2000.\",\n      \"remediation\": \"Implement human review of flagged content before removal.\"\n    },\n    {\n      \"title\": \"Inadequate Security Practices\",\n      \"description\": \"The feature must implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.\",\n      \"severity\": \"Medium\",\n      \"risk_score\": 60,\n      \"category\": \"Data Privacy\",\n      \"impact\": \"Potential legal penalties under the Indian Privacy Policy Act 2018.\",\n      \"remediation\": \"Establish and maintain a security policy that meets the requirements of the Indian Privacy Policy Act 2018.\"\n    }\n  ],\n  \"evidence_cited\": [\n    {\n      \"source\": \"Indian Privacy Policy Act 2018\",\n      \"citation\": \"Section 43A\",\n      \"content\": \"Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.\",\n      \"jurisdiction\": \"India\",\n      \"frameworks\": [\n        \"General Data Protection Regulation\"\n      ]\n    },\n    {\n      \"source\": \"Information Technology Act, 2000\",\n      \"citation\": \"Section 72A\",\n      \"content\": \"whoever, intentionally or knowingly discloses, uses for financial gain or otherwise, publishes or distributes any personal information in violation of the privacy terms under which such information was obtained or a contract or as is otherwise required by law, shall be punishable with imprisonment for a term which may extend to two years or with fine which may extend to one lakh rupees or with both.\",\n      \"jurisdiction\": \"India\",\n      \"frameworks\": [\n        \"General Data Protection Regulation\"\n      ]\n    }\n  ]\n}",
+                    "logs": [
+                        "{\n  \"feature\": \"AI Safety Filter\",\n  \"needs_geo_specific_logic\": true,\n  \"confidence\": 0.9,\n  \"risk_score\": 60,\n  \"compliance_score\": 40,\n  \"summary\": \"The AI Safety Filter feature requires improvements to ensure compliance with Indian data protection laws.",
+                        "The immediate removal of content without human review may raise concerns under Section 72A of the Information Technology Act, 2000 regarding fair and transparent processing.",
+                        "Implementing reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018 is also necessary.\",\n  \"issues\": [\n    {\n      \"title\": \"Lack of Human Review\",\n      \"description\": \"The immediate removal of flagged content without human review may conflict with Section 72A's requirements for fair and transparent processing.\",\n      \"severity\": \"High\",\n      \"risk_score\": 80,\n      \"category\": \"Data Privacy\",\n      \"impact\": \"Potential legal penalties under the Information Technology Act, 2000.\",\n      \"remediation\": \"Implement human review of flagged content before removal.\"\n    },\n    {\n      \"title\": \"Inadequate Security Practices\",\n      \"description\": \"The feature must implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.\",\n      \"severity\": \"Medium\",\n      \"risk_score\": 60,\n      \"category\": \"Data Privacy\",\n      \"impact\": \"Potential legal penalties under the Indian Privacy Policy Act 2018.\",\n      \"remediation\": \"Establish and maintain a security policy that meets the requirements of the Indian Privacy Policy Act 2018.\"\n    }\n  ],\n  \"evidence_cited\": [\n    {\n      \"source\": \"Indian Privacy Policy Act 2018\",\n      \"citation\": \"Section 43A\",\n      \"content\": \"Any body corporate which possesses, deals or handles any sensitive personal data or information shall be responsible for protecting the privacy of such data or information in a manner provided under this Act.\",\n      \"jurisdiction\": \"India\",\n      \"frameworks\": [\n        \"General Data Protection Regulation\"\n      ]\n    },\n    {\n      \"source\": \"Information Technology Act, 2000\",\n      \"citation\": \"Section 72A\",\n      \"content\": \"whoever, intentionally or knowingly discloses, uses for financial gain or otherwise, publishes or distributes any personal information in violation of the privacy terms under which such information was obtained or a contract or as is otherwise required by law, shall be punishable with imprisonment for a term which may extend to two years or with fine which may extend to one lakh rupees or with both.\",\n      \"jurisdiction\": \"India\",\n      \"frameworks\": [\n        \"General Data Protection Regulation\"\n      ]\n    }\n  ]\n}"
+                    ],
+                    "timestamp": 1769929055.3629391
+                }
+            ],
+            "risk_json": {
+                "risk_assessment": {
+                    "overall_risk": "High",
+                    "risk_score": 85,
+                    "confidence": 0.9,
+                    "summary": "The AI Safety Filter feature presents a high legal risk due to potential violations of Indian data protection laws. The immediate removal of content without human review may conflict with Section 72A's requirements for fair and transparent processing, which could result in legal penalties under the Information Technology Act, 2000. Additionally, the feature needs to implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.",
+                    "drivers": [
+                        {
+                            "law": "Information Technology Act, 2000",
+                            "jurisdiction": "India",
+                            "clause": "Section 72A",
+                            "reason": "The immediate removal of flagged content without human review may conflict with the requirements for fair and transparent processing.",
+                            "severity": "Critical"
+                        },
+                        {
+                            "law": "Indian Privacy Policy Act 2018",
+                            "jurisdiction": "India",
+                            "clause": "Section 43A",
+                            "reason": "The feature must implement reasonable security practices for handling sensitive personal data as per the Indian Privacy Policy Act 2018.",
+                            "severity": "High"
+                        }
+                    ]
+                }
+            },
+            "autofix_json": {
+                "auto_fix": {
+                    "summary": "Implement human review workflow for flagged content and enforce end-to-end encryption to meet Indian data protection requirements (IT Act 2000 Section 72A and Indian Privacy Policy Act 2018 Section 43A).",
+                    "fixes": [
+                        {
+                            "title": "Implement Human Review Workflow",
+                            "severity": "Critical",
+                            "description": "Add a human review step before removing flagged content to comply with Section 72A of the IT Act 2000",
+                            "issue_reference": "Section 72A of the Information Technology Act, 2000 requires fair and transparent processing of personal information, which is violated by immediate removal without human review.",
+                            "remediation_strategy": "Introduce a review queue that holds flagged content until human approval is obtained before removal.",
+                            "implementation_steps": [
+                                "Step 1: Create a new 'pending_review' status for flagged content items in the database",
+                                "Step 2: Modify the content removal endpoint to check for 'pending_review' status and redirect to a human review interface if present",
+                                "Step 3: Implement a real-time review interface where human reviewers can approve or reject flagged content before removal"
+                            ],
+                            "category": "Logic",
+                            "affected_jurisdiction": "India"
+                        },
+                        {
+                            "title": "Enforce Data Encryption and Access Controls",
+                            "severity": "High",
+                            "description": "Implement encryption and access controls for sensitive personal data to meet Section 43A of the Indian Privacy Policy Act 2018",
+                            "issue_reference": "Section 43A of the Indian Privacy Policy Act 2018 mandates that bodies handling sensitive personal data must protect it with reasonable security practices.",
+                            "remediation_strategy": "Apply end-to-end encryption for data in transit and at rest, and enforce strict role-based access controls.",
+                            "implementation_steps": [
+                                "Step 1: Configure TLS 1.3 for all API endpoints handling sensitive data",
+                                "Step 2: Implement AES-256 encryption for sensitive data stored in the database using AWS KMS",
+                                "Step 3: Conduct a security audit to validate encryption and access controls against Section 43A requirements"
+                            ],
+                            "category": "Data",
+                            "affected_jurisdiction": "India"
+                        }
+                    ]
+                }
+            },
+            "status": "AUTOFIX_COMPLETED"
         }
     ]
 }

@@ -1,0 +1,54 @@
+{
+  "feature_id": "feat_1769928439377",
+  "version": "003",
+  "timestamp": "2026-02-01T06:59:46.407315",
+  "verdict": {
+    "feature": "AI Safety Filter",
+    "needs_geo_specific_logic": true,
+    "confidence": 0.8,
+    "risk_score": 45,
+    "compliance_score": 55,
+    "summary": "The AI Safety Filter is generally compliant with Indian regulations but requires improvements in areas of user complaint mechanism and potential fairness concerns.",
+    "issues": [
+      {
+        "title": "Missing User Complaint Mechanism",
+        "description": "Currently, the AI Safety Filter does not provide a mechanism for users to complain about violations of law or rules as required by Rule 3(1)(d) of The IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021.",
+        "severity": "High",
+        "risk_score": 65,
+        "category": "Compliance",
+        "impact": "Potential legal consequences for non-compliance with Indian regulations.",
+        "remediation": "Implement a mechanism for users to complain about violations of law or rules."
+      },
+      {
+        "title": "Lack of Transparency and Fairness",
+        "description": "The AI Safety Filter removes content without human review, which may raise fairness concerns due to potential incorrect removals.",
+        "severity": "Medium",
+        "risk_score": 40,
+        "category": "Fairness",
+        "impact": "Negative user sentiment and potential legal consequences for lack of transparency and fairness.",
+        "remediation": "Implement a review process to address concerns about incorrect removals and improve transparency."
+      }
+    ],
+    "evidence_cited": [
+      {
+        "source": "ITA",
+        "citation": "Section 67, 72, and 75",
+        "content": "Prohibits publishing or transmitting information that is obscene in electronic form",
+        "jurisdiction": "India",
+        "frameworks": [
+          "The Information Technology Act, 2000"
+        ]
+      },
+      {
+        "source": "IGDM",
+        "citation": "Rule 3(1)(d)",
+        "content": "Requires significant social media intermediaries to provide a mechanism for users to complain about violations of law or rules",
+        "jurisdiction": "India",
+        "frameworks": [
+          "The IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021"
+        ]
+      }
+    ]
+  },
+  "laws_snapshot": []
+}
