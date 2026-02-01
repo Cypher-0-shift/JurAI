@@ -21,19 +21,23 @@ def run_jury_loop(jury_agent, critic_agent, task_context, max_iterations=2, on_e
 
     trace = []
     
+
     print(f"\n=== Starting Jury Loop: {jury_agent.name} ===")
     
     # 1. Jury creates initial report
     emit(EVENT_JURY_THINKING, {"msg": f"{jury_agent.name} is analyzing context..."})
     
     step_logs = []
-    def log_collector(msg):
+    def jury_log_collector(msg):
         step_logs.append(msg)
-        
+        # Emit real-time thought if it's not a tool log
+        if not msg.startswith("Calling Tool") and not msg.startswith("Tool Result"):
+             emit(EVENT_JURY_THINKING, {"msg": msg, "is_log": True})
+
     current_report = jury_agent.run(
         f"Generate a compliance report based on the provided context.", 
         context=task_context,
-        on_log=log_collector
+        on_log=jury_log_collector
     )
     emit(EVENT_JURY_REPORT, {"report": current_report})
     
@@ -53,13 +57,18 @@ def run_jury_loop(jury_agent, critic_agent, task_context, max_iterations=2, on_e
         emit(EVENT_CRITIC_THINKING, {"msg": f"Critic is checking iteration {i+1}..."})
         
         step_logs = [] 
+        def critic_log_collector(msg):
+            step_logs.append(msg)
+            if not msg.startswith("Calling Tool") and not msg.startswith("Tool Result"):
+                emit(EVENT_CRITIC_THINKING, {"msg": msg, "is_log": True})
+
         critique = critic_agent.run(
             f"Review this jury report against the original requirements.",
             context={
                 "original_task": task_context,
                 "jury_report": current_report
             },
-            on_log=log_collector 
+            on_log=critic_log_collector 
         )
         emit(EVENT_CRITIC_FEEDBACK, {"critique": critique})
         
@@ -82,10 +91,24 @@ def run_jury_loop(jury_agent, critic_agent, task_context, max_iterations=2, on_e
         emit(EVENT_JURY_THINKING, {"msg": f"Jury is refining report based on feedback..."})
         
         step_logs = []
+        # Re-use jury collector but need to reset logs? 
+        # Actually `step_logs` is captured by closure.
+        # We need to redefine it or acknowledge that `jury_log_collector` uses the `step_logs` variable from the outer scope?
+        # NO, `step_logs` is local to `run_jury_loop` scope but likely reset in the loop?
+        # Wait, the code I'm replacing has `step_logs = []` right before the run.
+        # But `jury_log_collector` defines `step_logs` in its closure? 
+        # Python closure captures the variable. If I re-assign `step_logs = []`, the closure sees the new list IF it was declared non-local or if I define the function inside the loop.
+        # To be safe, I will define `jury_refine_log_collector` inside the loop.
+        
+        def jury_refine_log_collector(msg):
+            step_logs.append(msg)
+            if not msg.startswith("Calling Tool") and not msg.startswith("Tool Result"):
+                emit(EVENT_JURY_THINKING, {"msg": msg, "is_log": True})
+
         current_report = jury_agent.run(
             f"Refine the report based on this critique: {critique}",
             context={"previous_report": current_report},
-            on_log=log_collector
+            on_log=jury_refine_log_collector
         )
         emit(EVENT_JURY_REPORT, {"report": current_report})
 
@@ -137,8 +160,10 @@ def run_pipeline(context_data, on_event=None):
     emit(EVENT_JUDGE_THINKING, {"msg": "Judge is producing final verdict..."})
     
     step_logs = []
-    def log_collector(msg):
+    def judge_log_collector(msg):
         step_logs.append(msg)
+        if not msg.startswith("Calling Tool") and not msg.startswith("Tool Result"):
+             emit(EVENT_JUDGE_THINKING, {"msg": msg, "is_log": True})
 
     final_verdict = judge.run(
         "Review these jury reports and produce a final consolidated verdict.",
@@ -146,7 +171,7 @@ def run_pipeline(context_data, on_event=None):
             "task": context_data,
             "report_1": report1
         },
-        on_log=log_collector
+        on_log=judge_log_collector
     )
     emit(EVENT_JUDGE_VERDICT, {"verdict": final_verdict})
     
@@ -164,3 +189,4 @@ def run_pipeline(context_data, on_event=None):
         "verdict_json": final_verdict,
         "execution_trace": execution_trace
     }
+

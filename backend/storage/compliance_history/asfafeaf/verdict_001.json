@@ -1,0 +1,32 @@
+{
+  "feature_id": "asfafeaf",
+  "version": "001",
+  "timestamp": "2026-02-01T02:12:45.243733",
+  "verdict": {
+    "feature": "asfafeaf",
+    "feature_description": "This feature automatically translates chat messages into the user's preferred language in real time.",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The report indicates that the feature involves the use of AI to translate user's chats, which may lead to mistranslation. This could potentially change the meaning of sensitive messages, triggering compliance obligations under the Personal Data Protection Bill, 2019 in India (Section 43 and Section 43A). Additionally, the feature stores chat translations for a duration of 6-12 months which may raise further concerns under the Personal Data Protection Bill, 2019 (Section 43A).",
+    "regions_affected": [
+      {
+        "region": "India",
+        "requirement_summary": "Compliance with the Personal Data Protection Bill, 2019",
+        "regulations": [
+          {
+            "name": "Personal Data Protection Bill, 2019",
+            "citation": "Bill No. 74 of 2019",
+            "snippet": "Section 43: Duty to protect sensitive personal data or information...\\nSection 43A: Obligations of body corporate and significant data fiduciary.",
+            "source_id": "India-PDP",
+            "article_numbers": [
+              "Article 43",
+              "Article 43A"
+            ]
+          }
+        ]
+      }
+    ],
+    "past_case_references": [],
+    "confidence": 0.9
+  },
+  "laws_snapshot": []
+}

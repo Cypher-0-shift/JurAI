@@ -59,86 +59,108 @@ export default function VerdictPage() {
 
     useEffect(() => {
         const fetchResults = async () => {
+            // 1. Handle Missing IDs (Loading State instead of Mock Data)
             if (!runId || !featureId) {
-                // FALLBACK MOCK DATA IF NO ID
-                setDetectedIssues([
-                    {
-                        id: 1,
-                        title: "Demo Issue: Inadequate Data Encryption",
-                        description: "User data lacks AES-256 encryption. (Run from Frontend to see real results)",
-                        severity: "Critical",
-                        riskScore: 85,
-                        category: "Data Security",
-                        impact: "High risk of data breach",
-                        remediation: "Implement AES-256"
-                    }
-                ]);
-                setLegalEvidences([]);
+                console.warn("Missing run_id or feature_id");
                 setIsLoading(false);
                 return;
             }
 
             try {
+                // 2. Fetch from Backend
                 const result = await api.pipeline.getResults(featureId, runId);
-                const verdict = result.verdict || {};
 
-                // Map metrics
-                const confidence = Math.round((verdict.confidence || 0) * 100);
+                // 3. PARSING LOGIC: Handle cases where verdict is a JSON string or an Object
+                let verdictData: any = {};
 
-                // Map Issues
-                const issues: any[] = [];
-                const evidences: any[] = [];
-
-                // Handle regions_affected which might be a list or object (prompt ambiguity)
-                const regions = Array.isArray(verdict.regions_affected)
-                    ? verdict.regions_affected
-                    : isValidObject(verdict.regions_affected) ? [verdict.regions_affected] : [];
-
-                regions.forEach((r: any, idx: number) => {
-                    // Create an issue for the region gap
-                    issues.push({
-                        id: `issue-${idx}`,
-                        title: `${r.region || 'Regional'} Compliance Requirement`,
-                        description: r.requirement_summary || "No summary provided.",
-                        severity: verdict.needs_geo_specific_logic ? "High" : "Medium",
-                        riskScore: confidence,
-                        category: "Regulatory",
-                        impact: "Potential non-compliance penalties",
-                        remediation: "Implement geo-specific logic as required."
-                    });
-
-                    // Collect Evidence
-                    if (Array.isArray(r.regulations)) {
-                        r.regulations.forEach((reg: any, eIdx: number) => {
-                            evidences.push({
-                                id: `ev-${idx}-${eIdx}`,
-                                title: reg.name || "Unknown Regulation",
-                                description: `Citation: ${reg.citation || 'N/A'}`,
-                                reference: reg.citation,
-                                severity: "High",
-                                category: "Regulation",
-                                content: reg.snippet || "No snippet available.",
-                                riskScore: confidence,
-                                frameworks: [r.region],
-                                jurisdiction: r.region
-                            });
-                        });
+                if (result.verdict) {
+                    if (typeof result.verdict === 'string') {
+                        try {
+                            // Clean markdown code blocks if present (e.g. ```json ... ```)
+                            const cleanJson = result.verdict.replace(/```json/g, '').replace(/```/g, '').trim();
+                            verdictData = JSON.parse(cleanJson);
+                        } catch (e) {
+                            console.error("Failed to parse verdict JSON string:", e);
+                            // Fallback: Use the raw string as a description if parsing fails
+                            verdictData = { issues: [], summary: result.verdict };
+                        }
+                    } else {
+                        verdictData = result.verdict;
                     }
+                }
+
+                const trace = result.agent_trace || [];
+
+                // 4. Calculate Analysis Time (from agent trace timestamps)
+                let durationStr = "0:00";
+                if (trace.length > 1) {
+                    try {
+                        const start = new Date(trace[0].timestamp).getTime();
+                        const end = new Date(trace[trace.length - 1].timestamp).getTime();
+                        const diffMs = end - start;
+                        if (!isNaN(diffMs)) {
+                            const minutes = Math.floor(diffMs / 60000);
+                            const seconds = Math.floor((diffMs % 60000) / 1000);
+                            durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        }
+                    } catch (e) {
+                        console.error("Date parsing error", e);
+                    }
+                }
+
+                // 5. Map Metrics
+                const confidence = verdictData.confidence ? Math.round(verdictData.confidence * 100) : 85; // Default 85 if missing
+                const overallRisk = verdictData.risk_score || (verdictData.compliance_score ? 100 - verdictData.compliance_score : 50);
+
+                // 6. Map Issues (Standardize Schema)
+                const issues: any[] = [];
+                const rawIssues = Array.isArray(verdictData.issues) ? verdictData.issues : [];
+
+                rawIssues.forEach((issue: any, iIdx: number) => {
+                    issues.push({
+                        id: `issue-${iIdx}`,
+                        title: issue.title || "Compliance Observation",
+                        description: issue.description || issue.summary || "Details not provided by Jury.",
+                        severity: issue.severity || "Medium",
+                        riskScore: issue.risk_score || overallRisk,
+                        category: issue.category || "General",
+                        impact: issue.impact || "Potential regulatory gap.",
+                        remediation: issue.remediation || issue.fix_suggestion || "Review compliance guidelines."
+                    });
                 });
 
+                // 7. Map Evidence
+                const evidences: any[] = [];
+                const rawEvidence = Array.isArray(verdictData.evidence_cited) ? verdictData.evidence_cited : [];
+
+                rawEvidence.forEach((ev: any, eIdx: number) => {
+                    evidences.push({
+                        id: `ev-top-${eIdx}`,
+                        title: ev.source || ev.title || "Legal Reference",
+                        description: `Citation: ${ev.citation || 'N/A'}`,
+                        reference: ev.citation || "General Reference",
+                        severity: "Medium", // Evidence itself doesn't always have severity, default to Medium
+                        category: "Regulation",
+                        content: ev.content || ev.snippet || ev.text || "No text content available.",
+                        riskScore: overallRisk,
+                        frameworks: ev.frameworks || [],
+                        jurisdiction: ev.jurisdiction || "Global"
+                    });
+                });
+
+                // Update State
                 setDetectedIssues(issues);
                 setLegalEvidences(evidences);
-
                 setMetrics({
                     confidence: confidence,
-                    riskScore: 100 - confidence, // Inverse logic for risk? Or just use confidence
-                    criticalCount: issues.filter(i => i.severity === "High" || i.severity === "Critical").length,
+                    riskScore: Math.round(overallRisk),
+                    criticalCount: issues.filter(i => (i.severity || "").toLowerCase() === "high" || (i.severity || "").toLowerCase() === "critical").length,
                     totalCount: issues.length,
-                    time: "1:45" // Mock time or calc from timestamp
+                    time: durationStr
                 });
 
             } catch (error) {
-                console.error("Failed to fetch verdict:", error);
+                console.error("Failed to fetch verdict results:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -166,6 +188,14 @@ export default function VerdictPage() {
     const toggleEvidence = (id: number) => {
         setExpandedEvidence(expandedEvidence === id ? null : id);
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-parchment dark:bg-[#0A0A0A] flex items-center justify-center">
+                <div className="text-teal font-serif text-xl animate-pulse">Loading JurAI Analysis...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-parchment dark:bg-[#0A0A0A] text-charcoal dark:text-parchment">
@@ -312,6 +342,11 @@ export default function VerdictPage() {
                                     </div>
                                 </div>
                             ))}
+                            {detectedIssues.length === 0 && !isLoading && (
+                                <div className="p-6 text-center text-slate-400 border border-dashed rounded-lg">
+                                    No issues detected or analysis is incomplete.
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -426,19 +461,21 @@ export default function VerdictPage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
                             <div className="text-center">
-                                <div className="text-3xl font-serif text-teal mb-1">85%</div>
+                                <div className="text-3xl font-serif text-teal mb-1">{Math.round(metrics.riskScore)}%</div>
                                 <div className="text-sm font-mono text-slate/40">Current Risk</div>
                             </div>
                             <div className="hidden sm:block text-slate/40">→</div>
                             <div className="text-center">
-                                <div className="text-3xl font-serif text-green-500 mb-1">15%</div>
+                                <div className="text-3xl font-serif text-green-500 mb-1">
+                                    {Math.max(0, Math.round(metrics.riskScore) - 70)}%
+                                </div>
                                 <div className="text-sm font-mono text-slate/40">After Fixes</div>
                             </div>
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                href="/fixes"
+                                href={`/fixes?run_id=${runId}&feature_id=${featureId}`}
                                 className="inline-flex items-center justify-center px-8 py-3 bg-teal text-parchment font-serif text-lg rounded-lg hover:bg-teal/90 transition-colors"
                             >
                                 <ClipboardCheck className="w-5 h-5 mr-2" />

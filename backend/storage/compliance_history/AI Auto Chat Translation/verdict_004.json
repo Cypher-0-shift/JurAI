@@ -1,0 +1,27 @@
+{
+  "feature_id": "AI Auto Chat Translation",
+  "version": "004",
+  "timestamp": "2026-02-01T01:49:27.676684",
+  "verdict": {
+    "feature": "AI Auto Chat Translation",
+    "feature_description": "This feature automatically translates chat messages into the user's preferred language in real time.",
+    "needs_geo_specific_logic": true,
+    "reasoning": "The feature is used by users across multiple jurisdictions, and it collects personal data (voice/audio, location, images/media, text/messages) that is stored indefinitely. As such, the compliance requirements for data protection laws like GDPR may differ between EU member states. The reported error in Report 1 suggests that one of the Jury Agents encountered an issue while processing the data, which indicates a need for geo-specific logic.",
+    "regions_affected": {
+      "EU": {
+        "requirement_summary": "Compliance with GDPR, including obtaining user consent, allowing users to opt out, and providing mechanisms for reporting issues.",
+        "regulations": [
+          {
+            "name": "GDPR",
+            "citation": "Regulation (EU) 2016/679",
+            "snippet": "...protects all EU citizens from privacy and data breaches in an increasingly data-driven world.",
+            "source_id": "report_2"
+          }
+        ]
+      }
+    },
+    "past_case_references": [],
+    "confidence": 0.85
+  },
+  "laws_snapshot": []
+}

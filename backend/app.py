@@ -194,29 +194,47 @@ def background_core_task(run_id: str, feature_id: str, context_data: Dict[str, A
                 if run_record.get("agent_trace") is None:
                     run_record["agent_trace"] = []
 
-                # Append to trace
+                # Determine Agent Name
+                agent_name = "System"
+                if "jury" in event_type:
+                    agent_name = "Jury_Primary"
+                elif "critic" in event_type:
+                    agent_name = "Critic_Reviewer"
+                elif "judge" in event_type:
+                    agent_name = "Judge"
+
+                # Check if this is a streaming log (insight)
+                is_log = event_data.get("is_log", False)
+                message = event_data.get("msg", "") or event_data.get("report") or event_data.get("critique") or event_data.get("verdict")
+                
+                if is_log:
+                    # Find the last active item for this agent to append log
+                    # We look backwards for the first item matching this agent
+                    target_item = None
+                    if run_record["agent_trace"]:
+                        for item in reversed(run_record["agent_trace"]):
+                            if item["agent"] == agent_name:
+                                target_item = item
+                                break
+                    
+                    if target_item:
+                        if "logs" not in target_item:
+                            target_item["logs"] = []
+                        target_item["logs"].append(message)
+                        save_data(db_data)
+                        return # Done for log update
+
+                # Standard Event - Create New Trace Item
                 timestamp = datetime.datetime.utcnow().isoformat()
                 
-                # We map events to trace items for the frontend
                 trace_item = {
-                    "agent": "System",
+                    "agent": agent_name,
                     "step": event_type,
-                    "content": str(event_data)[:200], # Preview
+                    "content": str(message)[:200] if message else "", # Preview
                     "timestamp": timestamp,
                     "logs": [],
                     "is_realtime": True
                 }
-                
-                # Special handling for specific events to map to agents
-                if "jury" in event_type:
-                    trace_item["agent"] = "Jury_Primary"
-                    trace_item["content"] = event_data.get("report") or event_data.get("msg")
-                elif "critic" in event_type:
-                    trace_item["agent"] = "Critic_Reviewer"
-                    trace_item["content"] = event_data.get("critique") or event_data.get("msg")
-                elif "judge" in event_type:
-                    trace_item["agent"] = "Judge"
-                    trace_item["content"] = event_data.get("verdict") or event_data.get("msg")
                 
                 # Append and Save
                 run_record["agent_trace"].append(trace_item)

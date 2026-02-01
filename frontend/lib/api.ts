@@ -75,6 +75,17 @@ export const api = {
                 throw new Error("Failed to fetch results");
             }
             return response.json();
+        },
+        runAutofix: async (featureId: string, runId: string): Promise<PipelineResult> => {
+            const response = await fetch(`${API_BASE_URL}/run/autofix`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ feature_id: featureId, run_id: runId }),
+            });
+            if (!response.ok) {
+                throw new Error("Failed to run autofix");
+            }
+            return response.json();
         }
     }
 };
