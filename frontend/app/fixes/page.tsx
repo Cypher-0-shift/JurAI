@@ -20,6 +20,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
+import { TabNavigation } from "@/components/TabNavigation";
 
 interface ComplianceIssue {
     severity: "HIGH" | "MEDIUM" | "LOW" | "CRITICAL";
@@ -152,9 +153,6 @@ export default function FixesPage() {
             {/* Header */}
             <header className="px-6 py-6 border-b border-charcoal/5 dark:border-white/5 flex justify-between items-center bg-parchment/50 dark:bg-[#0A0A0A]/50 backdrop-blur-sm sticky top-0 z-50">
                 <div className="flex items-center gap-4">
-                    <Link href={`/verdict?run_id=${runId}&feature_id=${featureId}`} className="p-2 hover:bg-teal/5 rounded-full transition-colors">
-                        <ChevronLeft className="w-5 h-5 text-teal" />
-                    </Link>
                     <div className="flex items-center gap-2">
                         <Scale className="w-5 h-5 text-teal" />
                         <span className="font-serif text-lg font-bold tracking-tight text-teal dark:text-parchment">JurAI</span>
@@ -167,6 +165,8 @@ export default function FixesPage() {
 
             {/* Main Content */}
             <main className="max-w-5xl mx-auto px-6 py-16 space-y-16">
+                <TabNavigation activeTab="fixes" />
+
                 {/* Hero Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

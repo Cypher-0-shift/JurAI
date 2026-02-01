@@ -478,6 +478,44 @@ async def stream_pipeline(request: Request):
         # Core is done
         try:
             core_result = await core_future
+            
+            # --- Persist VERDICT to Storage ---
+            try:
+                db_data = load_data()
+                # Find/Create record. Note: run_id might be new if generated inside core_pipeline
+                # But usually we passed context. If core generated it, we check.
+                run_id = core_result.get("run_id")
+                
+                # Check if record exists (it should, created by stream controller logic if we added it? 
+                # Actually stream_pipeline DOES NOT create the initial record in DB currently!
+                # It just queues tasks.
+                # FIX: We must create or update the record.
+                
+                run_record = next((r for r in db_data["compliance_runs"] if r["run_id"] == run_id), None)
+                
+                if not run_record:
+                    # Create new if missing (likely case for stream)
+                    run_record = {
+                        "run_id": run_id,
+                        "feature_id": core_result.get("feature_id"),
+                        "timestamp": datetime.datetime.utcnow().isoformat(),
+                        "verdict_json": core_result.get("verdict"),
+                        "agent_trace": core_result.get("agent_trace"),
+                        "risk_json": None,
+                        "autofix_json": None,
+                        "status": "CORE_COMPLETED"
+                    }
+                    db_data["compliance_runs"].append(run_record)
+                else:
+                    # Update existing
+                    run_record["verdict_json"] = core_result.get("verdict")
+                    run_record["agent_trace"] = core_result.get("agent_trace")
+                    run_record["status"] = "CORE_COMPLETED"
+                    
+                save_data(db_data)
+            except Exception as e:
+                logger.error(f"Failed to persist verdict: {e}")
+
             # Yield Verdict
             yield {"event": "verdict", "data": json.dumps(core_result.get("verdict", {}))}
             
@@ -525,6 +563,28 @@ async def stream_pipeline(request: Request):
             results = await asyncio.gather(risk_future, diff_future, return_exceptions=True)
             risk_res, diff_res = results
             
+            # --- Persist Results to Storage ---
+            try:
+                # Load current data
+                db_data = load_data()
+                run_record = next((r for r in db_data["compliance_runs"] if r["run_id"] == core_result.get("run_id")), None)
+                
+                if run_record:
+                    if not isinstance(risk_res, Exception):
+                        run_record["risk_json"] = risk_res.get("risk_assessment")
+                        run_record["status"] = "RISK_COMPLETED" # Checkpoint status
+
+                    # Note: We don't strictly have a "diff_json" field in the run_record structure/schema usually, 
+                    # check if we should add it or if it's part of verdict. 
+                    # Looking at get_run_results, it returns 'risk_assessment' and 'verdict'. 
+                    # Diff is often UI computed or part of verdict. 
+                    # If we don't save diff, the UI might re-compute it or miss it. 
+                    # But the user specifically asked about Risk. Let's start with Risk which is the critical missing piece.
+                    
+                    save_data(db_data)
+            except Exception as e:
+                logger.error(f"Failed to persist streaming results: {e}")
+
             if isinstance(risk_res, Exception):
                 logger.error(f"Risk Error: {risk_res}")
                 yield {"event": "error", "data": f"Risk Failed: {str(risk_res)}"}
@@ -536,7 +596,11 @@ async def stream_pipeline(request: Request):
             else:
                 yield {"event": "diff", "data": json.dumps(diff_res)}
                  
-            yield {"event": "done", "data": "Pipeline Complete"}
+            yield {"event": "done", "data": json.dumps({
+                "message": "Pipeline Complete",
+                "run_id": core_result.get("run_id"),
+                "feature_id": core_result.get("feature_id")
+            })}
 
         except Exception as e:
             yield {"event": "error", "data": str(e)}

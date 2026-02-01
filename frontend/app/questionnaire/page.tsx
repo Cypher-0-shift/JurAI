@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Scale, ChevronLeft, ChevronRight, Check, Gavel, Info, Upload, FileJson, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -140,14 +140,20 @@ export default function QuestionnairePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
+    const [sessionId, setSessionId] = useState("");
+
+    useEffect(() => {
+        setSessionId(new Date().getTime().toString(36).toUpperCase());
+    }, []);
+
     const currentQuestion = QUESTIONS[currentStep];
     const isLastStep = currentStep === QUESTIONS.length;
     const progress = ((currentStep + 1) / (QUESTIONS.length + 1)) * 100;
 
     // Check if question should be shown based on conditional logic
-    const shouldShowQuestion = (question: typeof QUESTIONS[0]) => {
+    const shouldShowQuestion = (question: typeof QUESTIONS[0], currentAnswers = answers) => {
         if (!question.conditional) return true;
-        const dependentAnswer = answers[question.conditional.dependsOn];
+        const dependentAnswer = currentAnswers[question.conditional.dependsOn];
         return dependentAnswer === question.conditional.value;
     };
 
@@ -160,9 +166,10 @@ export default function QuestionnairePage() {
                 : [...current, option];
             setAnswers({ ...answers, [question.id]: updated });
         } else {
-            setAnswers({ ...answers, [question.id]: option });
+            const newAnswers = { ...answers, [question.id]: option };
+            setAnswers(newAnswers);
             setTimeout(() => {
-                goToNextQuestion();
+                goToNextQuestion(newAnswers);
             }, 300);
         }
     };
@@ -171,10 +178,10 @@ export default function QuestionnairePage() {
         setTextInputs({ ...textInputs, [currentQuestion.id]: value });
     };
 
-    const goToNextQuestion = () => {
+    const goToNextQuestion = (currentAnswers = answers) => {
         let nextStep = currentStep + 1;
         // Skip questions that don't meet conditional requirements
-        while (nextStep < QUESTIONS.length && !shouldShowQuestion(QUESTIONS[nextStep])) {
+        while (nextStep < QUESTIONS.length && !shouldShowQuestion(QUESTIONS[nextStep], currentAnswers)) {
             nextStep++;
         }
         setCurrentStep(nextStep);
@@ -192,10 +199,12 @@ export default function QuestionnairePage() {
     };
 
     const handleNext = () => {
+        let currentAnswers = answers;
         if (currentQuestion.type === "text" || currentQuestion.type === "textarea") {
-            setAnswers({ ...answers, [currentQuestion.id]: textInputs[currentQuestion.id] || "" });
+            currentAnswers = { ...answers, [currentQuestion.id]: textInputs[currentQuestion.id] || "" };
+            setAnswers(currentAnswers);
         }
-        goToNextQuestion();
+        goToNextQuestion(currentAnswers);
     };
 
     const canProceed = () => {
@@ -515,8 +524,11 @@ export default function QuestionnairePage() {
                                                                 <div className="w-full border-t border-charcoal/10 dark:border-white/10"></div>
                                                             </div>
                                                             <div className="relative flex justify-center text-xs uppercase">
-                                                                <span className="bg-white dark:bg-[#151515] px-2 text-slate/50">
-                                                                    or
+                                                                <span className="bg-white dark:bg-[#151515] px-2 text-slate/50 flex items-center gap-2">
+                                                                    <span>SESSION ID:</span>
+                                                                    <span className="bg-charcoal/5 dark:bg-white/10 px-2 py-0.5 rounded min-w-[3rem] text-center inline-block">
+                                                                        {sessionId || "..."}
+                                                                    </span>
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -653,13 +665,13 @@ export default function QuestionnairePage() {
                                     <h2 className="font-serif text-3xl md:text-4xl text-teal dark:text-parchment">
                                         Ready for Legal Analysis
                                     </h2>
-                                    <p className="text-slate/60 dark:text-slate/40 text-lg">
+                                    <p className="text-slate/100 dark:text-slate/100 text-lg">
                                         Review your answers and submit for comprehensive legal compliance analysis.
                                     </p>
                                 </div>
 
                                 <div className="bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm p-6 space-y-4 max-h-96 overflow-y-auto">
-                                    {QUESTIONS.filter(shouldShowQuestion).map((q) => (
+                                    {QUESTIONS.filter(q => shouldShowQuestion(q)).map((q) => (
                                         <div key={q.id} className="border-b border-charcoal/5 dark:border-white/5 pb-4 last:border-0">
                                             <h3 className="font-medium text-sm text-slate/60 dark:text-slate/40">{q.title}</h3>
                                             <p className="text-lg mt-1">
@@ -682,7 +694,26 @@ export default function QuestionnairePage() {
 
                                     <button
                                         onClick={async () => {
-                                            if (!requiredQuestionsAnswered || isSubmitting) return;
+                                            if (isSubmitting) return;
+
+                                            // Manual Validation Check for Alert
+                                            const missing = QUESTIONS.filter(q => !q.optional && shouldShowQuestion(q)).filter(q => {
+                                                if (q.type === "text" || q.type === "textarea") {
+                                                    const val = textInputs[q.id] || (typeof answers[q.id] === 'string' ? (answers[q.id] as string) : "") || "";
+                                                    return val.trim().length === 0;
+                                                } else if (q.type === "multiselect") {
+                                                    return ((answers[q.id] as string[]) || []).length === 0;
+                                                } else {
+                                                    return !answers[q.id];
+                                                }
+                                            });
+
+                                            if (missing.length > 0) {
+                                                alert(`Please answer the following required questions: ${missing.map(q => q.title).join(", ")}`);
+                                                // Optional: Navigate to first missing?
+                                                return;
+                                            }
+
                                             setIsSubmitting(true);
                                             try {
                                                 const payload = {
@@ -692,27 +723,18 @@ export default function QuestionnairePage() {
                                                     )
                                                 };
 
-                                                // Ensure feature_id is present (fallback to generated UUID or timestamp if not)
+                                                const featureId = "feat_" + Date.now();
                                                 const contextData = {
                                                     ...payload,
+                                                    feature_id: featureId,
                                                     timestamp: new Date().toISOString()
                                                 };
 
-                                                const response = await api.pipeline.runCore({
-                                                    context_data: contextData
-                                                });
+                                                // Save context for Analysis Page to pick up
+                                                localStorage.setItem("pipeline_context", JSON.stringify(contextData));
 
-                                                // Redirect to Analysis page with run_id and feature_id
-                                                // Assuming backend returns feature_id and run_id. If specific ID didn't exist, one is usually generated.
-                                                // Based on app.py run_full_pipeline usually returns these.
-                                                const runId = response.run_id || "mock-run-" + Date.now();
-                                                const featureId = response.feature_id || "mock-feature-" + Date.now();
-
-                                                // Use window.location or router.push
-                                                // router.push is available now.
-
-                                                // For now, let's just go to analysis. The analysis page currently mocks data, but we pass params for future.
-                                                router.push(`/analysis?feature_id=${featureId}&run_id=${runId}`);
+                                                // Redirect to Analysis page
+                                                router.push("/analysis");
 
                                             } catch (error) {
                                                 console.error("Submission failed:", error);
@@ -720,10 +742,10 @@ export default function QuestionnairePage() {
                                                 setIsSubmitting(false);
                                             }
                                         }}
-                                        disabled={!requiredQuestionsAnswered || isSubmitting}
+                                        disabled={isSubmitting} // Only disable if submitting, not if invalid (so we can show alert)
                                         className={cn(
                                             "relative inline-flex items-center justify-center px-10 py-4 bg-teal text-parchment font-serif text-lg rounded-sm shadow-xl transition-all duration-500 group overflow-hidden",
-                                            (!requiredQuestionsAnswered || isSubmitting) && "opacity-50 cursor-not-allowed grayscale"
+                                            isSubmitting && "opacity-50 cursor-not-allowed grayscale"
                                         )}
                                     >
                                         <span className="relative z-10 flex items-center">
@@ -744,7 +766,7 @@ export default function QuestionnairePage() {
 
             {/* Background Decoration */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[url('/legal-bg.jpeg')] bg-cover bg-center opacity-20 grayscale mix-blend-multiply dark:mix-blend-overlay" />
+                <div className="absolute inset-0 bg-[url('/legal-bg.jpeg')] bg-cover bg-center opacity-[0.35] grayscale mix-blend-multiply dark:mix-blend-overlay" />
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-teal/5 via-transparent to-transparent" />
             </div>
         </div>

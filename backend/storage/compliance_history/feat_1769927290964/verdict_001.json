@@ -1,0 +1,45 @@
+{
+  "feature_id": "feat_1769927290964",
+  "version": "001",
+  "timestamp": "2026-02-01T06:30:52.292713",
+  "verdict": {
+    "feature": "Friend Match",
+    "needs_geo_specific_logic": false,
+    "confidence": 1.0,
+    "risk_score": 35,
+    "compliance_score": 65,
+    "summary": "The Friend Match feature appears to comply with most data privacy regulations but may face risks due to profiling users based on chat behavior and the lack of user consent. A recommended solution is to implement opt-in mechanisms for users.",
+    "issues": [
+      {
+        "title": "Lack of User Consent",
+        "description": "The feature collects personal data without obtaining explicit consent from users, which may lead to potential legal issues.",
+        "severity": "High",
+        "risk_score": 60,
+        "category": "Data Privacy",
+        "impact": "Potential fines and damage to reputation",
+        "remediation": "Implement opt-in mechanisms for users."
+      },
+      {
+        "title": "Profiling Users Based on Chat Behavior",
+        "description": "The feature may be creating profiles based on user chat behavior, which could lead to potential legal issues.",
+        "severity": "Medium",
+        "risk_score": 15,
+        "category": "Data Privacy",
+        "impact": "Potential fines and damage to reputation",
+        "remediation": "Limit the use of chat data for profiling purposes or obtain explicit user consent."
+      }
+    ],
+    "evidence_cited": [
+      {
+        "source": "The Information Technology Act, 2000 (India)",
+        "citation": "Section 72A",
+        "content": "any body corporate or person who, for commercial purposes, collects, discloses, or processes any sensitive personal data or information shall be liable to pay damages if such data is lost or wrongfully altered, disclosed, or falsified.",
+        "jurisdiction": "India",
+        "frameworks": [
+          "The Information Technology Act, 2000"
+        ]
+      }
+    ]
+  },
+  "laws_snapshot": []
+}

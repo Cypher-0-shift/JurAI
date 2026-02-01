@@ -89,7 +89,7 @@ export default function Home() {
       <section ref={targetRef} className="relative h-screen flex flex-col items-center justify-center text-center px-6 pt-20 overflow-hidden">
         {/* Background Image / Texture */}
         <div className="absolute inset-0 -z-20">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.15] dark:opacity-[0.2] grayscale" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.35] dark:opacity-[0.28] grayscale" />
           <div className="absolute inset-0 bg-gradient-to-b from-parchment/80 via-transparent to-parchment/80 dark:from-[#0A0A0A] dark:via-transparent dark:to-[#0A0A0A]" />
         </div>
 
@@ -128,7 +128,7 @@ export default function Home() {
           </motion.h1>
 
           <motion.div variants={itemVariants} className="space-y-4">
-            <p className="text-2xl md:text-4xl font-serif italic text-slate/80 dark:text-slate/40">
+            <p className="text-2xl md:text-4xl font-serif italic text-slate/80 dark:text-slate/80">
               “AI-Powered Compliance Intelligence”
             </p>
             <p className="text-lg text-charcoal/60 dark:text-parchment/40 max-w-2xl mx-auto font-light leading-relaxed">

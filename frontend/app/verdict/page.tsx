@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
+import { TabNavigation } from "@/components/TabNavigation";
 
 export default function VerdictPage() {
     const searchParams = useSearchParams();
@@ -109,8 +110,18 @@ export default function VerdictPage() {
                 }
 
                 // 5. Map Metrics
-                const confidence = verdictData.confidence ? Math.round(verdictData.confidence * 100) : 85; // Default 85 if missing
-                const overallRisk = verdictData.risk_score || (verdictData.compliance_score ? 100 - verdictData.compliance_score : 50);
+                // Prefer Risk Assessment pipeline data if available, otherwise fall back to Verdict data
+                const riskData = result.risk_assessment || {};
+
+                // Try to get risk score from Risk Pipeline -> then Verdict -> then Default
+                let calculatedRisk = 50; // Default
+                if (riskData.risk_score !== undefined) calculatedRisk = riskData.risk_score;
+                else if (riskData.overall_risk_score !== undefined) calculatedRisk = riskData.overall_risk_score;
+                else if (verdictData.risk_score !== undefined) calculatedRisk = verdictData.risk_score;
+                else if (verdictData.compliance_score !== undefined) calculatedRisk = 100 - verdictData.compliance_score;
+
+                const overallRisk = calculatedRisk;
+                const confidence = verdictData.confidence ? Math.round(verdictData.confidence * 100) : 85;
 
                 // 6. Map Issues (Standardize Schema)
                 const issues: any[] = [];
@@ -210,16 +221,12 @@ export default function VerdictPage() {
                             <p className="text-xs font-mono text-slate/40">Final Assessment Report</p>
                         </div>
                     </div>
-                    <Link
-                        href="/analysis"
-                        className="text-sm font-mono text-teal hover:text-teal/70"
-                    >
-                        ← Back to Analysis
-                    </Link>
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8">
+                <TabNavigation activeTab="verdict" />
+
                 {/* Metrics Section */}
                 <div className="mb-12">
                     <h2 className="font-serif text-2xl text-teal mb-6">Case Overview</h2>
