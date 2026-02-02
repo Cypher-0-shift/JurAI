@@ -1,51 +1,81 @@
 import os
 from .core import LiteLlm, Agent
-from .prompts import jury_prompt, jury_report_critic_prompt, jury_final_response_prompt
+from .prompts import (
+    jury_prompt,
+    jury_report_critic_prompt,
+    jury_final_response_prompt
+)
 from .tools import naiverag_retrieve_tool
 
-# --- Models ---
-# Jury: Llama 3.2 (Speed & Generation)
-# Jury: Llama 3.2 (Speed & Generation) -> Switched to Mistral for stability
-llama_model = LiteLlm(
-    model="ollama/mistral:7b-instruct", 
-    api_key=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-)
-
-# Critic: Gemini 2.0 Flash Lite (Verified Available)
-mistral_model = LiteLlm(
-    model="ollama/mistral:7b-instruct", 
-    api_key=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-)
-
-# Judge: Mistral 7B (High Quality Synthesis)
-
-# Standard model for features
-standard_model = LiteLlm(
-    model="ollama/qwen3:4b",
-    api_key=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-)
+# =========================================================
+# AI Provider Switch
+# =========================================================
+# ollama -> local development
+# groq   -> public production (Render)
+AI_PROVIDER = os.getenv("AI_PROVIDER", "ollama")
 
 
-# --- Agents ---
+def _build_model(role: str) -> LiteLlm:
+    """
+    Internal helper to build a LiteLlm model
+    without breaking existing variable names.
+    """
+
+    # ---------------- PRODUCTION (PUBLIC) ----------------
+    if AI_PROVIDER == "groq":
+        model_map = {
+            "jury": "groq/llama-3.1-70b-versatile",
+            "critic": "groq/mixtral-8x7b-32768",
+            "judge": "groq/llama-3.1-70b-versatile",
+            "standard": "groq/llama-3.1-8b-instant",
+        }
+
+        return LiteLlm(
+            model=model_map[role],
+            api_key=os.getenv("GROQ_API_KEY"),
+            temperature=0.2,
+        )
+
+    # ---------------- LOCAL DEVELOPMENT ----------------
+    return LiteLlm(
+        model="ollama/mistral:7b-instruct",
+        api_key=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        temperature=0.2,
+    )
+
+
+# =========================================================
+# Model Instances (DO NOT RENAME – used elsewhere)
+# =========================================================
+llama_model = _build_model("jury")
+mistral_model = _build_model("critic")
+standard_model = _build_model("standard")
+
+
+# =========================================================
+# Agent Factories (SIGNATURES UNCHANGED)
+# =========================================================
 
 def create_jury_agent(name, model=llama_model):
     return Agent(
         name=name,
         instruction=jury_prompt.PROMPT,
         model=model,
-        tools=[naiverag_retrieve_tool] 
+        tools=[naiverag_retrieve_tool],
     )
+
 
 def create_critic_agent(name, model=mistral_model):
     return Agent(
         name=name,
         instruction=jury_report_critic_prompt.PROMPT,
-        model=model
+        model=model,
     )
+
 
 def create_judge_agent(name="Judge", model=mistral_model):
     return Agent(
         name=name,
         instruction=jury_final_response_prompt.PROMPT,
-        model=model
+        model=model,
     )
