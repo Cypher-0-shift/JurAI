@@ -136,6 +136,7 @@ export default function QuestionnairePage() {
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [showUploadSection, setShowUploadSection] = useState(false);
+    const [showSkipOption, setShowSkipOption] = useState(false); // New state for skip button
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
@@ -311,7 +312,8 @@ export default function QuestionnairePage() {
                 setAnswers(newAnswers);
                 setTextInputs(newTextInputs);
                 setUploadSuccess(true);
-                setShowUploadSection(false);
+                setShowUploadSection(false); // Close upload section
+                setShowSkipOption(true); // Enable skip button
 
                 console.log('Upload successful! Loaded', processedCount, 'answers');
 
@@ -426,12 +428,23 @@ export default function QuestionnairePage() {
                                                     initial={{ opacity: 0, y: -10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: -10 }}
-                                                    className="mb-4 p-4 bg-teal/10 border border-teal/30 rounded-sm flex items-center gap-3"
+                                                    className="mb-4"
                                                 >
-                                                    <CheckCircle2 className="w-5 h-5 text-teal flex-shrink-0" />
-                                                    <p className="text-sm text-teal font-medium">
-                                                        Answers loaded successfully! You can now review and edit them.
-                                                    </p>
+                                                    <div className="p-4 bg-teal/10 border border-teal/30 rounded-sm flex items-center gap-3 mb-3">
+                                                        <CheckCircle2 className="w-5 h-5 text-teal flex-shrink-0" />
+                                                        <p className="text-sm text-teal font-medium">
+                                                            Answers loaded successfully!
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Skip to Review Button */}
+                                                    <button
+                                                        onClick={() => setCurrentStep(QUESTIONS.length)}
+                                                        className="w-full py-3 bg-teal text-parchment font-serif text-lg rounded-sm shadow-md hover:bg-teal/90 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <span>Skip to Review</span>
+                                                        <ChevronRight className="w-4 h-4" />
+                                                    </button>
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

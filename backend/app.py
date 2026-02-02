@@ -223,7 +223,8 @@ def background_core_task(run_id: str, feature_id: str, context_data: Dict[str, A
                 "$set": {
                     "verdict_json": result.get("verdict"),
                     "agent_trace": result.get("agent_trace"), # Overwrite with full clean trace
-                    "status": "CORE_COMPLETED"
+                    "status": "CORE_COMPLETED",
+                    "completed_at": datetime.datetime.utcnow().isoformat()
                 }
             }
         )
@@ -469,6 +470,7 @@ async def stream_pipeline(request: Request):
                         "verdict_json": core_result.get("verdict"),
                         "agent_trace": core_result.get("agent_trace"),
                         "status": "CORE_COMPLETED",
+                        "completed_at": datetime.datetime.utcnow().isoformat(),
                         "timestamp": datetime.datetime.utcnow().isoformat() # Only update timestamp if new? Overwrite is fine.
                     }
                 }

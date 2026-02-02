@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 from .config import create_jury_agent, create_critic_agent, create_judge_agent, llama_model, mistral_model
 
 # Constants for Event Streaming
@@ -46,7 +47,7 @@ def run_jury_loop(jury_agent, critic_agent, task_context, max_iterations=2, on_e
         "step": "Initial Report",
         "content": current_report,
         "logs": step_logs,
-        "timestamp": time.time()
+        "timestamp": datetime.utcnow().isoformat()
     })
     
     for i in range(max_iterations):
@@ -78,7 +79,7 @@ def run_jury_loop(jury_agent, critic_agent, task_context, max_iterations=2, on_e
             "step": f"Critique {i+1}",
             "content": critique,
             "logs": step_logs,
-            "timestamp": time.time()
+            "timestamp": datetime.utcnow().isoformat()
         })
         
         if "No major issues found" in critique:
@@ -117,7 +118,7 @@ def run_jury_loop(jury_agent, critic_agent, task_context, max_iterations=2, on_e
             "step": f"Refinement {i+1}",
             "content": current_report,
             "logs": step_logs,
-            "timestamp": time.time()
+            "timestamp": datetime.utcnow().isoformat()
         })
         
     return current_report, trace
@@ -182,7 +183,7 @@ def run_pipeline(context_data, on_event=None):
         "step": "Final Verdict",
         "content": final_verdict,
         "logs": step_logs,
-        "timestamp": time.time()
+        "timestamp": datetime.utcnow().isoformat()
     })
     
     return {

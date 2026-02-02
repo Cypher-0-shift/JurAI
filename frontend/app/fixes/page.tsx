@@ -373,18 +373,18 @@ export default function FixesPage() {
                 >
                     <button
                         className="inline-flex items-center justify-center px-8 py-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 text-charcoal dark:text-parchment font-medium rounded-sm hover:bg-charcoal/5 dark:hover:bg-white/5 transition-all w-full sm:w-auto"
-                        onClick={() => alert("Coming soon!")}
+                        onClick={() => alert("Feature coming soon: Integration with Jira API is under development.")}
                     >
                         <Download className="w-5 h-5 mr-2" />
                         Export JIRA Tickets
                     </button>
 
                     <Link
-                        href="/"
+                        href="/dashboard"
                         className="inline-flex items-center justify-center px-8 py-4 bg-teal text-parchment font-serif text-lg rounded-sm shadow-xl hover:shadow-teal/30 transition-all duration-500 group w-full sm:w-auto"
                     >
                         <Home className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                        Return Home
+                        Return to Dashboard
                     </Link>
                 </motion.div>
             </main>
