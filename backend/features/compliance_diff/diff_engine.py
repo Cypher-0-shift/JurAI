@@ -1,10 +1,10 @@
 # features/compliance_diff/diff_engine.py
 
 import json
-from agents.core import LiteLlm
+from backend.agents.core import LiteLlm
 from .diff_prompt import DIFF_PROMPT
 
-from agents.config import mistral_model
+from backend.agents.config import mistral_model
  
 diff_model = mistral_model
 

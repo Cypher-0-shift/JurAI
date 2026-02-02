@@ -70,7 +70,7 @@ export default function Home() {
           <div className="flex items-center gap-1 mr-2 pr-4 border-r border-charcoal/10 dark:border-white/10">
             <ThemeToggle />
           </div>
-          <button
+          {/* <button
             onClick={() => { setIsSignUp(false); setIsModalOpen(true); }}
             className="hidden sm:block text-sm font-medium text-teal dark:text-parchment px-4 py-2 hover:bg-teal/5 rounded-sm transition-colors"
           >
@@ -81,7 +81,7 @@ export default function Home() {
             className="text-sm font-medium bg-teal text-parchment px-5 py-2 rounded-sm shadow-lg hover:shadow-teal/20 hover:-translate-y-0.5 transition-all active:translate-y-0"
           >
             Sign Up
-          </button>
+          </button> */}
         </div>
       </motion.nav>
 
@@ -331,7 +331,7 @@ export default function Home() {
       </footer>
 
       {/* Authentication Modal */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {isModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -348,7 +348,6 @@ export default function Home() {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-md bg-parchment dark:bg-[#151515] rounded-xl shadow-2xl border border-charcoal/10 dark:border-white/10 overflow-hidden"
             >
-              {/* Close Button */}
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 p-2 text-slate-400 hover:text-teal transition-colors z-10"
@@ -356,7 +355,6 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Modal Header */}
               <div className="bg-gradient-to-r from-teal via-gold to-teal h-1" />
               <div className="p-8">
                 <div className="text-center mb-8">
@@ -369,7 +367,6 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Form */}
                 <form className="space-y-4">
                   {isSignUp && (
                     <div>
@@ -427,7 +424,6 @@ export default function Home() {
                   </button>
                 </form>
 
-                {/* Toggle between Login/Signup */}
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     {isSignUp ? 'Already have an account?' : "Don't have an account?"}
@@ -444,7 +440,7 @@ export default function Home() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </div>
   );
 }

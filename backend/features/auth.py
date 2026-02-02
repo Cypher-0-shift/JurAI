@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pymongo.database import Database
 
-from database.database import get_database
+from backend.database.database import get_database
 
 # Configuration
 SECRET_KEY = "jurai_secret_key_change_me_in_production"

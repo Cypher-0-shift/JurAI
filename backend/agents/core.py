@@ -4,15 +4,17 @@ import re
 from litellm import completion
 
 class LiteLlm:
-    def __init__(self, model, api_key=None):
+    def __init__(self, model, api_key=None, **config):
         self.model = model
         self.api_key = api_key
+        self.config = config # Store extra config like temperature, max_tokens
 
     def complete(self, messages, tools=None, stream=False):
         kwargs = {
             "model": self.model,
             "messages": messages,
-            "stream": stream
+            "stream": stream,
+            **self.config # Apply stored config
         }
         if self.api_key:
             kwargs["api_key"] = self.api_key

@@ -4,6 +4,10 @@ import uuid
 import datetime
 import os
 from typing import Dict, Any, Optional, List
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(dotenv_path="backend/.env")
 
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
@@ -245,7 +249,7 @@ async def trigger_core_pipeline(
     request: PipelineRequest,
     background_tasks: BackgroundTasks,
     db: Database = Depends(get_database),
-    current_user: dict = Depends(get_current_user)
+    # current_user: dict = Depends(get_current_user)
 ):
     """
     Triggers Pipeline A (Core) asynchronously.
@@ -283,7 +287,7 @@ async def trigger_core_pipeline(
 def trigger_risk_pipeline(
     request: RiskRequest,
     db: Database = Depends(get_database),
-    current_user: dict = Depends(get_current_user)
+    # current_user: dict = Depends(get_current_user)
 ):
     """
     Triggers Pipeline B (Risk). Publicly accessible.
@@ -321,7 +325,7 @@ def trigger_risk_pipeline(
 def trigger_autofix_pipeline(
     request: AutofixRequest,
     db: Database = Depends(get_database),
-    current_user: dict = Depends(get_current_user)
+    # current_user: dict = Depends(get_current_user)
 ):
     """
     Triggers Pipeline C (Auto-fix). Publicly accessible.
@@ -365,7 +369,7 @@ def get_run_results(
     feature_id: str, 
     run_id: str,
     db: Database = Depends(get_database),
-    current_user: dict = Depends(get_current_user)
+    # current_user: dict = Depends(get_current_user)
 ):
     """
     Fetch full results from DB. Publicly accessible.

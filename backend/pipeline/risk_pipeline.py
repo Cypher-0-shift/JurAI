@@ -1,8 +1,8 @@
 import logging
 from typing import Dict, Any
 
-from features.risk_reasoning.risk_engine import generate_risk_assessment
-from features.compliance_history.history_manager import get_latest_verdict
+from backend.features.risk_reasoning.risk_engine import generate_risk_assessment
+from backend.features.compliance_history.history_manager import get_latest_verdict
 
 # Configure logging
 logger = logging.getLogger(__name__)

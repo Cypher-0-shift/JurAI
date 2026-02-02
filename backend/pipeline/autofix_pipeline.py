@@ -1,8 +1,8 @@
 import logging
 from typing import Dict
 
-from features.auto_fix.fix_engine import generate_auto_fixes
-from features.compliance_history.history_manager import get_latest_verdict
+from backend.features.auto_fix.fix_engine import generate_auto_fixes
+from backend.features.compliance_history.history_manager import get_latest_verdict
 
 # Configure logging
 logger = logging.getLogger(__name__)

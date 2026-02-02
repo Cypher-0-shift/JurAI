@@ -1,4 +1,4 @@
-from rag.retrieve import retrieve
+from backend.rag.retrieve import retrieve
 
 class Tool:
     def __init__(self, name, description, func, schema):

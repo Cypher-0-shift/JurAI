@@ -2,9 +2,9 @@
 
 import json
 import re
-from agents.core import LiteLlm
+from backend.agents.core import LiteLlm
 from .fix_prompt import FIX_PROMPT
-from agents.config import standard_model
+from backend.agents.config import standard_model
  
 fix_model = standard_model
 

@@ -1,10 +1,10 @@
 # features/risk_reasoning/risk_engine.py
 
 import json
-from agents.core import LiteLlm
+from backend.agents.core import LiteLlm
 from .risk_prompt import RISK_PROMPT
 
-from agents.config import mistral_model
+from backend.agents.config import mistral_model
  
 # Use centralized standard model (Gemini 1.5 Flash)
 risk_model = mistral_model

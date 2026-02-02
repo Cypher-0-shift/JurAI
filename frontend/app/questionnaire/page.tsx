@@ -16,6 +16,7 @@ const QUESTIONS = [
         subtitle: "Example: Chat Translation, User Analytics Dashboard",
         type: "text",
         placeholder: "Enter feature name",
+        maxLength: 300, // Added character limit
     },
     {
         id: "feature_description",
@@ -24,6 +25,7 @@ const QUESTIONS = [
         subtitle: "What does it do? Who uses it? What problem does it solve? (1-3 sentences, plain English)",
         type: "textarea",
         placeholder: "Describe the feature in detail...",
+        maxLength: 600, // Added character limit
     },
     {
         id: "jurisdictions",
@@ -118,6 +120,7 @@ const QUESTIONS = [
         type: "textarea",
         placeholder: "Describe any concerns or additional context...",
         optional: true,
+        maxLength: 1000, // Added character limit
     },
     {
         id: "additional_context",
@@ -126,6 +129,7 @@ const QUESTIONS = [
         type: "textarea",
         placeholder: "Provide any additional context...",
         optional: true,
+        maxLength: 1000, // Added character limit
     },
 ];
 
@@ -209,6 +213,12 @@ export default function QuestionnairePage() {
     };
 
     const canProceed = () => {
+        // Enforce character limit validation before proceeding
+        if ((currentQuestion.type === "text" || currentQuestion.type === "textarea") && currentQuestion.maxLength) {
+            const currentLength = (textInputs[currentQuestion.id] || "").length;
+            if (currentLength > currentQuestion.maxLength) return false;
+        }
+
         if (currentQuestion.optional) return true;
         if (currentQuestion.type === "text" || currentQuestion.type === "textarea") {
             return (textInputs[currentQuestion.id] || "").trim().length > 0;
@@ -623,6 +633,19 @@ export default function QuestionnairePage() {
                                             placeholder={currentQuestion.placeholder}
                                             className="w-full p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm focus:ring-2 focus:ring-teal/20 focus:border-teal outline-none transition-all font-sans text-lg"
                                         />
+                                        {/* Added character counter for text inputs */}
+                                        {currentQuestion.maxLength && (
+                                            <div className="flex justify-between items-center mt-1">
+                                                <span className={cn("text-xs transition-colors", (textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength ? "text-red-500 font-bold" : "text-slate/50")}>
+                                                    {(textInputs[currentQuestion.id] || "").length} / {currentQuestion.maxLength} characters
+                                                </span>
+                                                {(textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength && (
+                                                    <span className="text-xs text-red-500 font-medium animate-pulse">
+                                                        Please reduce your answer to within the allowed character limit.
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                         <button
                                             onClick={handleNext}
                                             disabled={!canProceed()}
@@ -642,6 +665,19 @@ export default function QuestionnairePage() {
                                             placeholder={currentQuestion.placeholder}
                                             className="w-full h-48 p-4 bg-white dark:bg-[#151515] border border-charcoal/10 dark:border-white/10 rounded-sm focus:ring-2 focus:ring-teal/20 focus:border-teal outline-none transition-all resize-none font-sans text-lg leading-relaxed"
                                         />
+                                        {/* Added character counter for textareas */}
+                                        {currentQuestion.maxLength && (
+                                            <div className="flex justify-between items-center mt-1">
+                                                <span className={cn("text-xs transition-colors", (textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength ? "text-red-500 font-bold" : "text-slate/50")}>
+                                                    {(textInputs[currentQuestion.id] || "").length} / {currentQuestion.maxLength} characters
+                                                </span>
+                                                {(textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength && (
+                                                    <span className="text-xs text-red-500 font-medium animate-pulse">
+                                                        Please reduce your answer to within the allowed character limit.
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                         <button
                                             onClick={handleNext}
                                             disabled={!canProceed()}
@@ -724,6 +760,13 @@ export default function QuestionnairePage() {
                                             if (missing.length > 0) {
                                                 alert(`Please answer the following required questions: ${missing.map(q => q.title).join(", ")}`);
                                                 // Optional: Navigate to first missing?
+                                                return;
+                                            }
+
+                                            // Manual Validation Check for Character Limits
+                                            const overLimit = QUESTIONS.filter(q => q.maxLength && (textInputs[q.id] || "").length > q.maxLength);
+                                            if (overLimit.length > 0) {
+                                                alert("Please reduce your answer to within the allowed character limit.");
                                                 return;
                                             }
 

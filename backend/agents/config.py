@@ -12,7 +12,7 @@ from .tools import naiverag_retrieve_tool
 # =========================================================
 # ollama -> local development
 # groq   -> public production (Render)
-AI_PROVIDER = os.getenv("AI_PROVIDER", "ollama")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
 
 
 def _build_model(role: str) -> LiteLlm:
@@ -22,26 +22,26 @@ def _build_model(role: str) -> LiteLlm:
     """
 
     # ---------------- PRODUCTION (PUBLIC) ----------------
-    if AI_PROVIDER == "groq":
-        model_map = {
-            "jury": "groq/llama-3.1-70b-versatile",
-            "critic": "groq/mixtral-8x7b-32768",
-            "judge": "groq/llama-3.1-70b-versatile",
-            "standard": "groq/llama-3.1-8b-instant",
-        }
+    # if AI_PROVIDER == "groq": # Force Groq path
+    model_map = {
+        "jury": "groq/llama-3.1-8b-instant",
+        "critic": "groq/llama-3.1-8b-instant",
+        "judge": "groq/llama-3.1-8b-instant",
+        "standard": "groq/llama-3.1-8b-instant",
+    }
 
-        return LiteLlm(
-            model=model_map[role],
-            api_key=os.getenv("GROQ_API_KEY"),
-            temperature=0.2,
-        )
-
-    # ---------------- LOCAL DEVELOPMENT ----------------
     return LiteLlm(
-        model="ollama/mistral:7b-instruct",
-        api_key=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        model=model_map[role],
+        api_key=os.getenv("GROQ_API_KEY"),
+        max_tokens=512,
         temperature=0.2,
     )
+
+    # ---------------- LOCAL DEVELOPMENT (DISABLED) ----------------
+    # return LiteLlm(
+    #    model="ollama/mistral:7b-instruct",
+    #    api_key=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+    # )
 
 
 # =========================================================

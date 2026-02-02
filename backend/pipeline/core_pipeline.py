@@ -5,16 +5,16 @@ from datetime import datetime
 from typing import Dict, Optional
 
 # Core dependencies (existing)
-from agents.jury_system import run_pipeline as run_agents_pipeline
-from features.compliance_history.history_manager import (
+from backend.agents.jury_system import run_pipeline as run_agents_pipeline
+from backend.features.compliance_history.history_manager import (
     store_verdict,
     get_previous_verdict
 )
-from features.compliance_diff.diff_engine import generate_compliance_diff
-from agents import config as agents_config
-from features.risk_reasoning import risk_engine as risk_module
-from features.compliance_diff import diff_engine as diff_module
-from features.auto_fix import fix_engine as fix_module
+from backend.features.compliance_diff.diff_engine import generate_compliance_diff
+from backend.agents import config as agents_config
+from backend.features.risk_reasoning import risk_engine as risk_module
+from backend.features.compliance_diff import diff_engine as diff_module
+from backend.features.auto_fix import fix_engine as fix_module
 
 # Configure logging
 logger = logging.getLogger(__name__)
