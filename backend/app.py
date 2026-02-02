@@ -5,28 +5,27 @@ import datetime
 import os
 from typing import Dict, Any, Optional, List
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.database import Database
 from pydantic import BaseModel, EmailStr
 
-# --- Project Imports ---
-from database.database import get_database
-from features import auth
-from features.auth import get_current_user
-# from api.streaming import router as streaming_router
-
 import asyncio
 from sse_starlette.sse import EventSourceResponse
-from fastapi import Request
+
+# --- Project Imports (RENDER SAFE) ---
+from backend.database.database import get_database
+from backend.features import auth
+from backend.features.auth import get_current_user
 
 # --- Pipeline Imports ---
-from pipeline.core_pipeline import run_core_pipeline
-from pipeline.risk_pipeline import run_risk_pipeline
-from pipeline.autofix_pipeline import run_autofix_pipeline
-from features.compliance_diff.diff_engine import generate_compliance_diff
-from features.compliance_history.history_manager import get_previous_verdict
+from backend.pipeline.core_pipeline import run_core_pipeline
+from backend.pipeline.risk_pipeline import run_risk_pipeline
+from backend.pipeline.autofix_pipeline import run_autofix_pipeline
+from backend.features.compliance_diff.diff_engine import generate_compliance_diff
+from backend.features.compliance_history.history_manager import get_previous_verdict
+
 
 # --- App Configuration ---
 app = FastAPI(title="JurAI Compliance System")
