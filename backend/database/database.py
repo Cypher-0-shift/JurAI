@@ -1,38 +1,36 @@
 import os
 from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 import logging
+import certifi
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-# Default to local if not set. User said they have connection string, 
-# likely will set MONGODB_URI in env or .env file.
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+MONGODB_URI = os.getenv("MONGODB_URI")
 DB_NAME = "jurai_db"
+
+if not MONGODB_URI:
+    raise RuntimeError("MONGODB_URI is not set")
 
 client = None
 db = None
 
 def get_database():
-    """
-    Returns the MongoDB database instance.
-    Lazy initialization.
-    """
     global client, db
     if db is None:
         try:
-            logger.info(f"Connecting to MongoDB at {MONGODB_URI}...")
-            client = MongoClient(MONGODB_URI)
+            logger.info("Connecting to MongoDB Atlas...")
+            client = MongoClient(MONGODB_URI, server_api=ServerApi('1'), tlsCAFile=certifi.where())
             db = client[DB_NAME]
-            # Test connection
-            client.admin.command('ping')
-            logger.info("MongoDB connection successful.")
+            client.admin.command("ping")
+            logger.info("MongoDB Atlas connection successful")
         except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
-            raise e
+            logger.error(f"MongoDB connection failed: {e}")
+            raise
     return db
 
 def close_mongo_connection():
     global client
     if client:
         client.close()
+        logger.info("MongoDB connection closed")
