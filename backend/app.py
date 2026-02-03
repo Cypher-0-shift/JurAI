@@ -388,7 +388,7 @@ def get_run_results(
 
 # --- Streaming Endpoint (Merged from streaming.py) ---
 
-@app.post("/stream/pipeline")
+@app.post("/pipeline/run")
 async def stream_pipeline(request: Request):
     """
     SSE Endpoint that runs the full pipeline and streams events.
@@ -560,7 +560,13 @@ async def stream_pipeline(request: Request):
         except Exception as e:
             yield {"event": "error", "data": str(e)}
 
-    return EventSourceResponse(event_generator())
+    return EventSourceResponse(
+    event_generator(),
+    headers={
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+    }
+)
 
 # --- Application Entry Point & Port Selection ---
 import uvicorn

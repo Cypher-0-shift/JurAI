@@ -163,7 +163,7 @@ export default function AnalysisPage() {
                     // REMOVED: localStorage.removeItem("pipeline_context"); -- Moved to "done" event to support StrictMode remounts
 
                     // Start the stream
-                    const response = await fetch(`${API_BASE_URL}/stream/pipeline`, {
+                    const response = await fetch(`${API_BASE_URL}/pipeline/run`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(contextData)

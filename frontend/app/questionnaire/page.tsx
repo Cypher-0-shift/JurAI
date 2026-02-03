@@ -414,11 +414,11 @@ export default function QuestionnairePage() {
                                     <h2 className="font-serif text-5xl md:text-6xl text-teal dark:text-parchment leading-tight">
                                         {currentQuestion.title}
                                     </h2>
-                                    <p className="text-slate/60 dark:text-slate/40 text-3xl md:text-4xl font-medium leading-relaxed">
+                                    <p className="text-slate/95 dark:text-slate/90 text-3xl md:text-4xl font-medium leading-relaxed">
                                         {currentQuestion.question}
                                     </p>
                                     {currentQuestion.subtitle && (
-                                        <p className="text-slate/50 dark:text-slate/50 text-sm italic">
+                                        <p className="text-slate/70 dark:text-slate/70 text-sm italic">
                                             {currentQuestion.subtitle}
                                         </p>
                                     )}
@@ -636,7 +636,7 @@ export default function QuestionnairePage() {
                                         {/* Added character counter for text inputs */}
                                         {currentQuestion.maxLength && (
                                             <div className="flex justify-between items-center mt-1">
-                                                <span className={cn("text-xs transition-colors", (textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength ? "text-red-500 font-bold" : "text-slate/50")}>
+                                                <span className={cn("text-xs transition-colors", (textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength ? "text-red-500 font-bold" : "text-slate-60 dark:text-slate-60")}>
                                                     {(textInputs[currentQuestion.id] || "").length} / {currentQuestion.maxLength} characters
                                                 </span>
                                                 {(textInputs[currentQuestion.id] || "").length > currentQuestion.maxLength && (
@@ -651,7 +651,7 @@ export default function QuestionnairePage() {
                                             disabled={!canProceed()}
                                             className={cn(
                                                 "px-6 py-3 bg-teal text-parchment font-medium rounded-sm transition-all",
-                                                !canProceed() && "opacity-50 cursor-not-allowed"
+                                                !canProceed() && "opacity-30 cursor-not-allowed"
                                             )}
                                         >
                                             Continue
