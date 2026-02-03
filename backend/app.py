@@ -42,13 +42,13 @@ logger = logging.getLogger(__name__)
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://jurai-frontend.vercel.app",
-    "https://*.vercel.app"
+    "https://jurai-frontend.vercel.app"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex="https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers

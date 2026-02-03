@@ -25,4 +25,4 @@ pymongo
 dnspython
 email-validator
 certifi
-sse-starlette
+
