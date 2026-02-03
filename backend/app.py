@@ -40,13 +40,10 @@ logger = logging.getLogger(__name__)
 
 # --- CORS Configuration ---
 origins = [
-    origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://jurai-frontend.vercel.app",
     "https://*.vercel.app"
-]
-
 ]
 
 app.add_middleware(
