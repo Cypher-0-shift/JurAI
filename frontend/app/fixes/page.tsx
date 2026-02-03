@@ -2,6 +2,11 @@ import { Suspense } from "react";
 import FixesClient from "./FixesClient";
 import { Loader2, Wrench } from "lucide-react";
 
+// FORCE DYNAMIC: This page relies on query parameters (run_id, feature_id).
+// Preventing static generation fixes the "Validation failed" error during build
+// because the build process cannot provide these values.
+export const dynamic = "force-dynamic";
+
 function FixesLoading() {
     return (
         <div className="min-h-screen bg-parchment dark:bg-[#0A0A0A] flex flex-col items-center justify-center space-y-6">
@@ -27,4 +32,4 @@ export default function FixesPage() {
             <FixesClient />
         </Suspense>
     );
-}
+} 

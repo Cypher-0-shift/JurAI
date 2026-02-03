@@ -4,10 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Scale,
-    ChevronLeft,
     ChevronDown,
-    Shield,
-    FileText,
     Home,
     Download,
     CheckCircle2,
@@ -33,8 +30,10 @@ interface ComplianceIssue {
 
 export default function FixesClient() {
     const searchParams = useSearchParams();
-    const runId = searchParams.get("run_id");
-    const featureId = searchParams.get("feature_id");
+
+    // Safe access with fallbacks for initial render
+    const runId = searchParams?.get("run_id") || null;
+    const featureId = searchParams?.get("feature_id") || null;
 
     const [openIssueIndex, setOpenIssueIndex] = useState<number | null>(null);
     const [fixes, setFixes] = useState<ComplianceIssue[]>([]);
@@ -63,7 +62,6 @@ export default function FixesClient() {
                         autoFixData = JSON.parse(cleanJson);
                     } catch (e) {
                         console.error("Failed to parse auto_fix JSON string:", e);
-                        // Don't overwrite with empty object immediately, let it flow to generation if needed
                         autoFixData = null;
                     }
                 }
@@ -73,7 +71,7 @@ export default function FixesClient() {
                     autoFixData = autoFixData.auto_fix;
                 }
 
-                // 2. If no fixes found, Trigger Generation (The "Agentic" part)
+                // 2. If no fixes found, Trigger Generation
                 if (!autoFixData || !autoFixData.fixes || autoFixData.fixes.length === 0) {
                     setGenerating(true);
                     try {
@@ -118,6 +116,8 @@ export default function FixesClient() {
     }, [runId, featureId]);
 
     const mapAndSetFixes = (backendFixes: any[]) => {
+        if (!Array.isArray(backendFixes)) return;
+
         const mapped = backendFixes.map((f: any) => ({
             severity: (f.severity || "MEDIUM").toUpperCase(),
             title: f.title || "Compliance Fix",
