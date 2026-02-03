@@ -2,6 +2,8 @@
 import { Suspense } from "react";
 import VerdictClient from "./VerdictClient";
 
+export const dynamic = "force-dynamic";
+
 export default function VerdictPage() {
     return (
         <Suspense fallback={
